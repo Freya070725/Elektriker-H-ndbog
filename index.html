@@ -2898,6 +2898,10 @@ async function pollCallSignals() {
         }
       )
       .limit(30);
+  statusText.textContent =
+  error
+    ? "CALL TEST: databasefejl"
+    : `CALL TEST: ${data?.length || 0} signaler`;
 
 
   if (error) {
