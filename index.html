@@ -381,7 +381,846 @@
       color: white;
       font-size: 19px;
     }
+/* =========================================================
+   LYD- OG VIDEOOPKALD
+========================================================= */
 
+const rtcConfig = {
+  iceServers: [
+    {
+      urls: "stun:stun.l.google.com:19302"
+    },
+    {
+      urls: "stun:stun1.l.google.com:19302"
+    }
+  ]
+};
+
+
+/* ---------------------------------------------------------
+   SEND SIGNAL VIA SUPABASE
+--------------------------------------------------------- */
+
+async function sendCallSignal(type, payload = {}) {
+
+  if (!currentUser || !recipientId) {
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("call_signals")
+      .insert({
+        sender_id: currentUser.id,
+        recipient_id: recipientId,
+        signal_type: type,
+        payload: payload
+      });
+
+  if (error) {
+    console.error(
+      "Signal kunne ikke sendes:",
+      error
+    );
+  }
+}
+
+
+/* ---------------------------------------------------------
+   OPRET PEER CONNECTION
+--------------------------------------------------------- */
+
+function createPeerConnection() {
+
+  if (peerConnection) {
+    peerConnection.close();
+  }
+
+  peerConnection =
+    new RTCPeerConnection(
+      rtcConfig
+    );
+
+
+  peerConnection.onicecandidate =
+    event => {
+
+      if (event.candidate) {
+
+        sendCallSignal(
+          "ice-candidate",
+          {
+            candidate:
+              event.candidate
+          }
+        );
+      }
+    };
+
+
+  peerConnection.ontrack =
+    event => {
+
+      if (
+        event.streams &&
+        event.streams[0]
+      ) {
+
+        remoteVideo.srcObject =
+          event.streams[0];
+
+        remoteVideo.play()
+          .catch(() => {});
+      }
+    };
+
+
+  peerConnection.onconnectionstatechange =
+    () => {
+
+      const state =
+        peerConnection
+          ?.connectionState;
+
+      if (state === "connected") {
+
+        callStatus.textContent =
+          "Forbundet";
+
+      }
+
+      if (state === "connecting") {
+
+        callStatus.textContent =
+          "Forbinder...";
+
+      }
+
+      if (
+        state === "failed" ||
+        state === "disconnected"
+      ) {
+
+        callStatus.textContent =
+          "Forbindelsen blev afbrudt";
+      }
+    };
+
+
+  if (localStream) {
+
+    localStream
+      .getTracks()
+      .forEach(track => {
+
+        peerConnection.addTrack(
+          track,
+          localStream
+        );
+      });
+  }
+
+  return peerConnection;
+}
+
+
+/* ---------------------------------------------------------
+   HENT MIKROFON / KAMERA
+--------------------------------------------------------- */
+
+async function getMedia(type) {
+
+  const constraints = {
+
+    audio: true,
+
+    video:
+      type === "video"
+      ? {
+          facingMode: "user"
+        }
+      : false
+  };
+
+
+  try {
+
+    localStream =
+      await navigator.mediaDevices
+        .getUserMedia(
+          constraints
+        );
+
+
+    if (type === "video") {
+
+      localVideo.srcObject =
+        localStream;
+
+      localVideo.style.display =
+        "block";
+
+      remoteVideo.style.display =
+        "block";
+
+      cameraButton.style.display =
+        "inline-block";
+
+    } else {
+
+      localVideo.style.display =
+        "none";
+
+      remoteVideo.style.display =
+        "none";
+
+      cameraButton.style.display =
+        "none";
+    }
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      type === "video"
+      ? "Appen skal have adgang til mikrofon og kamera for at starte videoopkald."
+      : "Appen skal have adgang til mikrofonen for at starte lydopkald."
+    );
+
+    return false;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   START OPKALD
+--------------------------------------------------------- */
+
+async function startCall(type) {
+
+  if (
+    !currentUser ||
+    !recipientId
+  ) {
+
+    alert(
+      "Chatten er ikke klar endnu."
+    );
+
+    return;
+  }
+
+
+  currentCallType =
+    type;
+
+
+  callOverlay.classList.remove(
+    "hidden"
+  );
+
+
+  callTitle.textContent =
+    type === "video"
+    ? "📹 Videoopkald"
+    : "📞 Lydopkald";
+
+
+  callStatus.textContent =
+    "Starter opkald...";
+
+
+  const mediaReady =
+    await getMedia(type);
+
+
+  if (!mediaReady) {
+
+    closeCallLocally();
+
+    return;
+  }
+
+
+  createPeerConnection();
+
+
+  const offer =
+    await peerConnection
+      .createOffer();
+
+
+  await peerConnection
+    .setLocalDescription(
+      offer
+    );
+
+
+  await sendCallSignal(
+    "offer",
+    {
+      sdp: offer,
+      callType: type
+    }
+  );
+
+
+  callStatus.textContent =
+    "Ringer...";
+}
+
+
+/* ---------------------------------------------------------
+   INDKOMMENDE OPKALD
+--------------------------------------------------------- */
+
+async function handleIncomingOffer(signal) {
+
+  if (peerConnection) {
+
+    await sendCallSignal(
+      "busy",
+      {}
+    );
+
+    return;
+  }
+
+
+  const offer =
+    signal.payload?.sdp;
+
+  const type =
+    signal.payload?.callType ||
+    "audio";
+
+
+  if (!offer) {
+    return;
+  }
+
+
+  pendingOffer = {
+    offer,
+    type,
+    senderId:
+      signal.sender_id
+  };
+
+
+  const wantsVideo =
+    type === "video";
+
+
+  const accepted =
+    confirm(
+      wantsVideo
+      ? "Indgående videoopkald. Vil du besvare?"
+      : "Indgående lydopkald. Vil du besvare?"
+    );
+
+
+  if (!accepted) {
+
+    await sendCallSignal(
+      "decline",
+      {}
+    );
+
+    pendingOffer = null;
+
+    return;
+  }
+
+
+  currentCallType =
+    type;
+
+
+  callOverlay.classList.remove(
+    "hidden"
+  );
+
+
+  callTitle.textContent =
+    type === "video"
+    ? "📹 Videoopkald"
+    : "📞 Lydopkald";
+
+
+  callStatus.textContent =
+    "Besvarer...";
+
+
+  const mediaReady =
+    await getMedia(type);
+
+
+  if (!mediaReady) {
+
+    await sendCallSignal(
+      "decline",
+      {}
+    );
+
+    closeCallLocally();
+
+    return;
+  }
+
+
+  createPeerConnection();
+
+
+  await peerConnection
+    .setRemoteDescription(
+      new RTCSessionDescription(
+        offer
+      )
+    );
+
+
+  const answer =
+    await peerConnection
+      .createAnswer();
+
+
+  await peerConnection
+    .setLocalDescription(
+      answer
+    );
+
+
+  await sendCallSignal(
+    "answer",
+    {
+      sdp: answer
+    }
+  );
+
+
+  pendingOffer = null;
+
+  callStatus.textContent =
+    "Forbinder...";
+}
+
+
+/* ---------------------------------------------------------
+   MODTAG ANSWER
+--------------------------------------------------------- */
+
+async function handleAnswer(signal) {
+
+  if (
+    !peerConnection ||
+    !signal.payload?.sdp
+  ) {
+    return;
+  }
+
+
+  try {
+
+    await peerConnection
+      .setRemoteDescription(
+        new RTCSessionDescription(
+          signal.payload.sdp
+        )
+      );
+
+    callStatus.textContent =
+      "Forbinder...";
+
+  } catch (error) {
+
+    console.error(
+      "Answer fejl:",
+      error
+    );
+  }
+}
+
+
+/* ---------------------------------------------------------
+   ICE CANDIDATES
+--------------------------------------------------------- */
+
+async function handleIceCandidate(signal) {
+
+  if (
+    !peerConnection ||
+    !signal.payload?.candidate
+  ) {
+    return;
+  }
+
+
+  try {
+
+    await peerConnection
+      .addIceCandidate(
+        new RTCIceCandidate(
+          signal.payload.candidate
+        )
+      );
+
+  } catch (error) {
+
+    console.error(
+      "ICE-fejl:",
+      error
+    );
+  }
+}
+
+
+/* ---------------------------------------------------------
+   MODTAG SIGNAL
+--------------------------------------------------------- */
+
+async function handleCallSignal(signal) {
+
+  if (
+    !signal ||
+    signal.recipient_id !==
+      currentUser?.id
+  ) {
+    return;
+  }
+
+
+  switch (
+    signal.signal_type
+  ) {
+
+    case "offer":
+
+      await handleIncomingOffer(
+        signal
+      );
+
+      break;
+
+
+    case "answer":
+
+      await handleAnswer(
+        signal
+      );
+
+      break;
+
+
+    case "ice-candidate":
+
+      await handleIceCandidate(
+        signal
+      );
+
+      break;
+
+
+    case "hangup":
+
+      callStatus.textContent =
+        "Opkald afsluttet";
+
+      setTimeout(
+        closeCallLocally,
+        500
+      );
+
+      break;
+
+
+    case "decline":
+
+      callStatus.textContent =
+        "Opkaldet blev afvist";
+
+      setTimeout(
+        closeCallLocally,
+        900
+      );
+
+      break;
+
+
+    case "busy":
+
+      callStatus.textContent =
+        "Optaget";
+
+      setTimeout(
+        closeCallLocally,
+        900
+      );
+
+      break;
+  }
+}
+
+
+/* ---------------------------------------------------------
+   REALTIME FOR OPKALD
+--------------------------------------------------------- */
+
+function startCallRealtime() {
+
+  if (callChannel) {
+
+    supabaseClient
+      .removeChannel(
+        callChannel
+      );
+  }
+
+
+  callChannel =
+    supabaseClient
+      .channel(
+        "call-signals-" +
+        currentUser.id
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "call_signals",
+          filter:
+            `recipient_id=eq.${currentUser.id}`
+        },
+
+        payload => {
+
+          handleCallSignal(
+            payload.new
+          );
+        }
+      )
+      .subscribe();
+}
+
+
+/* ---------------------------------------------------------
+   RYD GAMLE SIGNALER
+--------------------------------------------------------- */
+
+async function deleteOldCallSignals() {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  const oneHourAgo =
+    new Date(
+      Date.now() -
+      60 * 60 * 1000
+    ).toISOString();
+
+
+  await supabaseClient
+    .from("call_signals")
+    .delete()
+    .lt(
+      "created_at",
+      oneHourAgo
+    );
+}
+
+
+/* ---------------------------------------------------------
+   LÆG PÅ
+--------------------------------------------------------- */
+
+async function hangUp() {
+
+  if (
+    currentUser &&
+    recipientId
+  ) {
+
+    await sendCallSignal(
+      "hangup",
+      {}
+    );
+  }
+
+
+  closeCallLocally();
+}
+
+
+/* ---------------------------------------------------------
+   LUK OPKALD LOKALT
+--------------------------------------------------------- */
+
+function closeCallLocally() {
+
+  if (peerConnection) {
+
+    peerConnection.close();
+
+    peerConnection = null;
+  }
+
+
+  if (localStream) {
+
+    localStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+    localStream = null;
+  }
+
+
+  localVideo.srcObject =
+    null;
+
+  remoteVideo.srcObject =
+    null;
+
+
+  localVideo.style.display =
+    "none";
+
+  remoteVideo.style.display =
+    "none";
+
+
+  callOverlay.classList.add(
+    "hidden"
+  );
+
+
+  callStatus.textContent =
+    "Forbinder...";
+
+
+  muteButton.textContent =
+    "🎤 Mute";
+
+
+  cameraButton.textContent =
+    "📷 Kamera";
+
+
+  currentCallType =
+    null;
+
+  pendingOffer =
+    null;
+}
+
+
+/* ---------------------------------------------------------
+   MUTE
+--------------------------------------------------------- */
+
+function toggleMute() {
+
+  if (!localStream) {
+    return;
+  }
+
+
+  const audioTrack =
+    localStream
+      .getAudioTracks()[0];
+
+
+  if (!audioTrack) {
+    return;
+  }
+
+
+  audioTrack.enabled =
+    !audioTrack.enabled;
+
+
+  muteButton.textContent =
+    audioTrack.enabled
+    ? "🎤 Mute"
+    : "🔇 Unmute";
+}
+
+
+/* ---------------------------------------------------------
+   KAMERA TIL / FRA
+--------------------------------------------------------- */
+
+function toggleCamera() {
+
+  if (!localStream) {
+    return;
+  }
+
+
+  const videoTrack =
+    localStream
+      .getVideoTracks()[0];
+
+
+  if (!videoTrack) {
+    return;
+  }
+
+
+  videoTrack.enabled =
+    !videoTrack.enabled;
+
+
+  cameraButton.textContent =
+    videoTrack.enabled
+    ? "📷 Kamera"
+    : "🚫 Kamera";
+}
+
+
+/* ---------------------------------------------------------
+   KNAPPER
+--------------------------------------------------------- */
+
+audioCallButton.addEventListener(
+  "click",
+  () => startCall("audio")
+);
+
+
+videoCallButton.addEventListener(
+  "click",
+  () => startCall("video")
+);
+
+
+hangupButton.addEventListener(
+  "click",
+  hangUp
+);
+
+
+muteButton.addEventListener(
+  "click",
+  toggleMute
+);
+
+
+cameraButton.addEventListener(
+  "click",
+  toggleCamera
+);
+      
     /* ---------------------------
        SETTINGS
     ---------------------------- */
@@ -1421,9 +2260,11 @@ async function openChat() {
     await loadMessages();
 
     startRealtime();
+startCallRealtime();
+deleteOldCallSignals();
 
-    statusText.textContent =
-      "Synkroniseret";
+statusText.textContent =
+  "Synkroniseret";
 
   } catch (error) {
 
