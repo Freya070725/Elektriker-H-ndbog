@@ -1402,6 +1402,7 @@ cameraButton.addEventListener(
   id="settingsButton"
   class="top-button"
   aria-label="Indstillinger"
+  onclick="document.getElementById('settingsOverlay').classList.remove('hidden')"
 >
   ⋮
 </button>
@@ -2266,20 +2267,29 @@ deleteOldCallSignals();
 statusText.textContent =
   "Synkroniseret";
 
-  } catch (error) {
+} catch (error) {
 
-    console.error(error);
+  console.error(error);
 
-    statusText.textContent =
-      "Forbindelsesfejl";
+  statusText.textContent =
+    "Forbindelsesfejl";
 
-    messagesContainer.innerHTML =
-      `
-      <div class="empty-chat">
-        Chatten mangler den sidste databaseindstilling.
-      </div>
-      `;
-  }
+  const errorText =
+    error?.message ||
+    error?.details ||
+    JSON.stringify(error);
+
+  messagesContainer.innerHTML =
+    `
+    <div class="empty-chat">
+      <b>Chatten kunne ikke forbindes.</b>
+      <br><br>
+      Fejl:
+      <br>
+      ${escapeHTML(errorText)}
+    </div>
+    `;
+}
 }
 
 
