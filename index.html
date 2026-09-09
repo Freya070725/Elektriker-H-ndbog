@@ -797,28 +797,210 @@ function formatTime(dateString) {
   );
 }
 
-
 /* =========================================================
-   PIN
+   PIN - SIKKER LOKAL LAGRING
 ========================================================= */
 
-function getSavedPin() {
+const PIN_STORAGE_KEY =
+  "elektriker_handbog_pin_secure";
 
-  return localStorage.getItem(
-    "elektriker_handbog_pin"
+const OLD_PIN_STORAGE_KEY =
+  "elektriker_handbog_pin";
+
+
+function hasSavedPin() {
+
+  return !!(
+    localStorage.getItem(PIN_STORAGE_KEY) ||
+    localStorage.getItem(OLD_PIN_STORAGE_KEY)
   );
+}
+
+
+function bytesToBase64(bytes) {
+
+  let binary = "";
+
+  bytes.forEach(byte => {
+    binary += String.fromCharCode(byte);
+  });
+
+  return btoa(binary);
+}
+
+
+function base64ToBytes(base64) {
+
+  const binary = atob(base64);
+
+  return Uint8Array.from(
+    binary,
+    char => char.charCodeAt(0)
+  );
+}
+
+
+async function createPinHash(pin, salt) {
+
+  const encoder =
+    new TextEncoder();
+
+  const keyMaterial =
+    await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(pin),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+
+  const derivedBits =
+    await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: 200000,
+        hash: "SHA-256"
+      },
+      keyMaterial,
+      256
+    );
+
+  return new Uint8Array(
+    derivedBits
+  );
+}
+
+
+async function savePinSecurely(pin) {
+
+  const salt =
+    crypto.getRandomValues(
+      new Uint8Array(16)
+    );
+
+  const hash =
+    await createPinHash(
+      pin,
+      salt
+    );
+
+  const record = {
+    salt: bytesToBase64(salt),
+    hash: bytesToBase64(hash)
+  };
+
+  localStorage.setItem(
+    PIN_STORAGE_KEY,
+    JSON.stringify(record)
+  );
+
+  // Fjern gammel PIN i klartekst,
+  // hvis den findes.
+  localStorage.removeItem(
+    OLD_PIN_STORAGE_KEY
+  );
+}
+
+
+async function verifyPin(pin) {
+
+  const secureRecord =
+    localStorage.getItem(
+      PIN_STORAGE_KEY
+    );
+
+
+  // Ny sikker metode
+  if (secureRecord) {
+
+    try {
+
+      const record =
+        JSON.parse(secureRecord);
+
+      const salt =
+        base64ToBytes(
+          record.salt
+        );
+
+      const savedHash =
+        base64ToBytes(
+          record.hash
+        );
+
+      const enteredHash =
+        await createPinHash(
+          pin,
+          salt
+        );
+
+
+      if (
+        savedHash.length !==
+        enteredHash.length
+      ) {
+        return false;
+      }
+
+
+      let difference = 0;
+
+      for (
+        let i = 0;
+        i < savedHash.length;
+        i++
+      ) {
+
+        difference |=
+          savedHash[i] ^
+          enteredHash[i];
+      }
+
+      return difference === 0;
+
+    } catch (error) {
+
+      console.error(
+        "PIN-data kunne ikke læses",
+        error
+      );
+
+      return false;
+    }
+  }
+
+
+  // Hvis den gamle version af appen
+  // allerede har gemt PIN i klartekst:
+  const oldPin =
+    localStorage.getItem(
+      OLD_PIN_STORAGE_KEY
+    );
+
+  if (
+    oldPin &&
+    pin === oldPin
+  ) {
+
+    // Flyt automatisk over
+    // til den nye sikre lagring.
+    await savePinSecurely(pin);
+
+    return true;
+  }
+
+
+  return false;
 }
 
 
 function setupPinScreen() {
 
-  const savedPin =
-    getSavedPin();
-
   pinInput.value = "";
   pinError.textContent = "";
 
-  if (!savedPin) {
+  if (!hasSavedPin()) {
 
     pinSetupText.textContent =
       "Første gang: vælg en personlig PIN på 4-6 cifre";
@@ -835,7 +1017,9 @@ function setupPinScreen() {
       "Åbn håndbog";
   }
 
+
   showOnly(pinScreen);
+
 
   setTimeout(
     () => pinInput.focus(),
@@ -844,15 +1028,17 @@ function setupPinScreen() {
 }
 
 
-function handlePin() {
+async function handlePin() {
 
   const enteredPin =
     pinInput.value.trim();
 
-  const savedPin =
-    getSavedPin();
 
-  if (!/^\d{4,6}$/.test(enteredPin)) {
+  if (
+    !/^\d{4,6}$/.test(
+      enteredPin
+    )
+  ) {
 
     pinError.textContent =
       "PIN skal være 4-6 tal.";
@@ -861,27 +1047,44 @@ function handlePin() {
   }
 
 
-  if (!savedPin) {
+  pinButton.disabled = true;
 
-    localStorage.setItem(
-      "elektriker_handbog_pin",
+
+  // Ingen PIN endnu =
+  // første opsætning
+  if (!hasSavedPin()) {
+
+    await savePinSecurely(
       enteredPin
     );
 
     pinUnlocked = true;
 
-    continueAfterPin();
+    pinButton.disabled = false;
+
+    await continueAfterPin();
 
     return;
   }
 
 
-  if (enteredPin !== savedPin) {
+  const correct =
+    await verifyPin(
+      enteredPin
+    );
+
+
+  pinButton.disabled = false;
+
+
+  if (!correct) {
 
     pinError.textContent =
       "Forkert PIN.";
 
     pinInput.value = "";
+
+    pinInput.focus();
 
     return;
   }
@@ -889,7 +1092,7 @@ function handlePin() {
 
   pinUnlocked = true;
 
-  continueAfterPin();
+  await continueAfterPin();
 }
 
 
@@ -910,7 +1113,9 @@ async function continueAfterPin() {
 
   } else {
 
-    showOnly(loginScreen);
+    showOnly(
+      loginScreen
+    );
   }
 }
 
@@ -925,7 +1130,9 @@ pinInput.addEventListener(
   "keydown",
   event => {
 
-    if (event.key === "Enter") {
+    if (
+      event.key === "Enter"
+    ) {
 
       handlePin();
     }
