@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-  
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
 
   <title>Elektriker Håndbog</title>
 
@@ -15,1462 +15,662 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Elektriker Håndbog">
 
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #eef1f4;
-      color: #17202a;
-    }
-
-    button, input, select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .screen {
-      min-height: 100vh;
-      width: 100%;
-    }
-
-    /* ---------------------------
-       START / PIN
-    ---------------------------- */
-
-    .lock-screen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 25px;
-      background:
-        linear-gradient(
-          rgba(20, 28, 36, 0.88),
-          rgba(20, 28, 36, 0.94)
-        ),
-        repeating-linear-gradient(
-          45deg,
-          #273746,
-          #273746 20px,
-          #202c38 20px,
-          #202c38 40px
-        );
-    }
-
-    .lock-card {
-      width: 100%;
-      max-width: 390px;
-      background: white;
-      border-radius: 22px;
-      padding: 30px 24px;
-      text-align: center;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.28);
-    }
-
-    .electric-icon {
-      width: 92px;
-      height: 92px;
-      margin: 0 auto 18px;
-      border-radius: 20px;
-      background: #17202a;
-      color: #f4d03f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
-    }
-
-    h1 {
-      margin: 5px 0 8px;
-      font-size: 27px;
-    }
-
-    .subtitle {
-      color: #68737d;
-      font-size: 14px;
-      margin-bottom: 26px;
-    }
-
-    .pin-input {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #d5d9dd;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 25px;
-      letter-spacing: 8px;
-      outline: none;
-      margin-bottom: 14px;
-    }
-
-    .pin-input:focus {
-      border-color: #34495e;
-    }
-
-    .primary-btn {
-      width: 100%;
-      border: none;
-      border-radius: 12px;
-      padding: 15px;
-      background: #17202a;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-    }
-
-    .primary-btn:active {
-      transform: scale(0.98);
-    }
-
-    .small-info {
-      font-size: 12px;
-      color: #89939c;
-      margin-top: 18px;
-    }
-
-    .error {
-      color: #b03a2e;
-      font-size: 13px;
-      min-height: 18px;
-      margin-bottom: 8px;
-    }
-
-    /* ---------------------------
-       LOGIN
-    ---------------------------- */
-
-    .login-screen {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 25px;
-      background: #e8ecef;
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 410px;
-      background: white;
-      padding: 28px 24px;
-      border-radius: 20px;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.12);
-    }
-
-    .login-card h2 {
-      margin-top: 0;
-      text-align: center;
-    }
-
-    .field-label {
-      display: block;
-      font-size: 13px;
-      font-weight: bold;
-      margin: 16px 0 7px;
-    }
-
-    .text-input {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #cdd3d8;
-      border-radius: 10px;
-      outline: none;
-      background: white;
-    }
-
-    .text-input:focus {
-      border-color: #34495e;
-    }
-
-    /* ---------------------------
-       CHAT
-    ---------------------------- */
-
-    .chat-screen {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: #e5e9ec;
-    }
-
-    .topbar {
-      flex-shrink: 0;
-      height: 68px;
-      background: #17202a;
-      color: white;
-      display: flex;
-      align-items: center;
-      padding: 0 15px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
-    }
-
-    .top-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      background: #2c3e50;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 23px;
-      margin-right: 11px;
-    }
-
-    .top-title {
-      flex: 1;
-    }
-
-    .top-title strong {
-      display: block;
-      font-size: 16px;
-    }
-
-    .top-title span {
-      font-size: 11px;
-      opacity: 0.72;
-    }
-
-    .top-button {
-      border: none;
-      background: transparent;
-      color: white;
-      font-size: 21px;
-      padding: 9px;
-    }
-
-    .messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 18px 12px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .message-row {
-      display: flex;
-      width: 100%;
-    }
-
-    .message-row.mine {
-      justify-content: flex-end;
-    }
-
-    .message-row.theirs {
-      justify-content: flex-start;
-    }
-
-    .bubble {
-      max-width: 78%;
-      padding: 10px 12px 7px;
-      border-radius: 16px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
-      word-wrap: break-word;
-      position: relative;
-    }
-
-    .mine .bubble {
-      background: #d5f5e3;
-      border-bottom-right-radius: 4px;
-    }
-
-    .theirs .bubble {
-      background: white;
-      border-bottom-left-radius: 4px;
-    }
-
-    .message-text {
-      white-space: pre-wrap;
-      line-height: 1.35;
-      font-size: 15px;
-    }
-
-    .message-meta {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 7px;
-      margin-top: 4px;
-      font-size: 10px;
-      color: #75808a;
-    }
-
-    .delete-message {
-      border: none;
-      background: transparent;
-      padding: 0;
-      color: #8c969e;
-      font-size: 12px;
-    }
-
-    .empty-chat {
-      margin: auto;
-      color: #7b868f;
-      text-align: center;
-      font-size: 14px;
-      padding: 30px;
-    }
-
-    /* ---------------------------
-       SEND BOX
-    ---------------------------- */
-
-    .composer {
-      flex-shrink: 0;
-      background: #f7f8f9;
-      border-top: 1px solid #d6dade;
-      padding: 8px 9px max(8px, env(safe-area-inset-bottom));
-    }
-
-    .delete-options {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      margin-bottom: 7px;
-      font-size: 11px;
-      color: #68737d;
-    }
-
-    .delete-options select {
-      border: 1px solid #ccd2d7;
-      border-radius: 7px;
-      padding: 5px 7px;
-      background: white;
-      font-size: 11px;
-    }
-
-    .send-row {
-      display: flex;
-      align-items: flex-end;
-      gap: 7px;
-    }
-
-    .message-input {
-      flex: 1;
-      resize: none;
-      min-height: 44px;
-      max-height: 110px;
-      border: 1px solid #ccd2d7;
-      border-radius: 19px;
-      padding: 11px 14px;
-      outline: none;
-      background: white;
-    }
-
-    .send-btn {
-      width: 45px;
-      height: 45px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      border: none;
-      background: #17202a;
-      color: white;
-      font-size: 19px;
-    }
-/* =========================================================
-   LYD- OG VIDEOOPKALD
-========================================================= */
-
-const rtcConfig = {
-  iceServers: [
-    {
-      urls: "stun:stun.l.google.com:19302"
-    },
-    {
-      urls: "stun:stun1.l.google.com:19302"
-    }
-  ]
-};
-
-
-/* ---------------------------------------------------------
-   SEND SIGNAL VIA SUPABASE
---------------------------------------------------------- */
-
-async function sendCallSignal(type, payload = {}) {
-
-  if (!currentUser || !recipientId) {
-    return;
-  }
-
-  const { error } =
-    await supabaseClient
-      .from("call_signals")
-      .insert({
-        sender_id: currentUser.id,
-        recipient_id: recipientId,
-        signal_type: type,
-        payload: payload
-      });
-
-  if (error) {
-    console.error(
-      "Signal kunne ikke sendes:",
-      error
-    );
-  }
+<style>
+* {
+  box-sizing: border-box;
 }
 
-
-/* ---------------------------------------------------------
-   OPRET PEER CONNECTION
---------------------------------------------------------- */
-
-function createPeerConnection() {
-
-  if (peerConnection) {
-    peerConnection.close();
-  }
-
-  peerConnection =
-    new RTCPeerConnection(
-      rtcConfig
-    );
-
-
-  peerConnection.onicecandidate =
-    event => {
-
-      if (event.candidate) {
-
-        sendCallSignal(
-          "ice-candidate",
-          {
-            candidate:
-              event.candidate
-          }
-        );
-      }
-    };
-
-
-  peerConnection.ontrack =
-    event => {
-
-      if (
-        event.streams &&
-        event.streams[0]
-      ) {
-
-        remoteVideo.srcObject =
-          event.streams[0];
-
-        remoteVideo.play()
-          .catch(() => {});
-      }
-    };
-
-
-  peerConnection.onconnectionstatechange =
-    () => {
-
-      const state =
-        peerConnection
-          ?.connectionState;
-
-      if (state === "connected") {
-
-        callStatus.textContent =
-          "Forbundet";
-
-      }
-
-      if (state === "connecting") {
-
-        callStatus.textContent =
-          "Forbinder...";
-
-      }
-
-      if (
-        state === "failed" ||
-        state === "disconnected"
-      ) {
-
-        callStatus.textContent =
-          "Forbindelsen blev afbrudt";
-      }
-    };
-
-
-  if (localStream) {
-
-    localStream
-      .getTracks()
-      .forEach(track => {
-
-        peerConnection.addTrack(
-          track,
-          localStream
-        );
-      });
-  }
-
-  return peerConnection;
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #e8ecef;
+  color: #17202a;
 }
 
-
-/* ---------------------------------------------------------
-   HENT MIKROFON / KAMERA
---------------------------------------------------------- */
-
-async function getMedia(type) {
-
-  const constraints = {
-
-    audio: true,
-
-    video:
-      type === "video"
-      ? {
-          facingMode: "user"
-        }
-      : false
-  };
-
-
-  try {
-
-    localStream =
-      await navigator.mediaDevices
-        .getUserMedia(
-          constraints
-        );
-
-
-    if (type === "video") {
-
-      localVideo.srcObject =
-        localStream;
-
-      localVideo.style.display =
-        "block";
-
-      remoteVideo.style.display =
-        "block";
-
-      cameraButton.style.display =
-        "inline-block";
-
-    } else {
-
-      localVideo.style.display =
-        "none";
-
-      remoteVideo.style.display =
-        "none";
-
-      cameraButton.style.display =
-        "none";
-    }
-
-
-    return true;
-
-  } catch (error) {
-
-    console.error(error);
-
-    alert(
-      type === "video"
-      ? "Appen skal have adgang til mikrofon og kamera for at starte videoopkald."
-      : "Appen skal have adgang til mikrofonen for at starte lydopkald."
-    );
-
-    return false;
-  }
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-
-/* ---------------------------------------------------------
-   START OPKALD
---------------------------------------------------------- */
-
-async function startCall(type) {
-
-  if (
-    !currentUser ||
-    !recipientId
-  ) {
-
-    alert(
-      "Chatten er ikke klar endnu."
-    );
-
-    return;
-  }
-
-
-  currentCallType =
-    type;
-
-
-  callOverlay.classList.remove(
-    "hidden"
-  );
-
-
-  callTitle.textContent =
-    type === "video"
-    ? "📹 Videoopkald"
-    : "📞 Lydopkald";
-
-
-  callStatus.textContent =
-    "Starter opkald...";
-
-
-  const mediaReady =
-    await getMedia(type);
-
-
-  if (!mediaReady) {
-
-    closeCallLocally();
-
-    return;
-  }
-
-
-  createPeerConnection();
-
-
-  const offer =
-    await peerConnection
-      .createOffer();
-
-
-  await peerConnection
-    .setLocalDescription(
-      offer
-    );
-
-
-  await sendCallSignal(
-    "offer",
-    {
-      sdp: offer,
-      callType: type
-    }
-  );
-
-
-  callStatus.textContent =
-    "Ringer...";
+button {
+  cursor: pointer;
 }
 
-
-/* ---------------------------------------------------------
-   INDKOMMENDE OPKALD
---------------------------------------------------------- */
-
-async function handleIncomingOffer(signal) {
-
-  if (peerConnection) {
-
-    await sendCallSignal(
-      "busy",
-      {}
-    );
-
-    return;
-  }
-
-
-  const offer =
-    signal.payload?.sdp;
-
-  const type =
-    signal.payload?.callType ||
-    "audio";
-
-
-  if (!offer) {
-    return;
-  }
-
-
-  pendingOffer = {
-    offer,
-    type,
-    senderId:
-      signal.sender_id
-  };
-
-
-  const wantsVideo =
-    type === "video";
-
-
-  const accepted =
-    confirm(
-      wantsVideo
-      ? "Indgående videoopkald. Vil du besvare?"
-      : "Indgående lydopkald. Vil du besvare?"
-    );
-
-
-  if (!accepted) {
-
-    await sendCallSignal(
-      "decline",
-      {}
-    );
-
-    pendingOffer = null;
-
-    return;
-  }
-
-
-  currentCallType =
-    type;
-
-
-  callOverlay.classList.remove(
-    "hidden"
-  );
-
-
-  callTitle.textContent =
-    type === "video"
-    ? "📹 Videoopkald"
-    : "📞 Lydopkald";
-
-
-  callStatus.textContent =
-    "Besvarer...";
-
-
-  const mediaReady =
-    await getMedia(type);
-
-
-  if (!mediaReady) {
-
-    await sendCallSignal(
-      "decline",
-      {}
-    );
-
-    closeCallLocally();
-
-    return;
-  }
-
-
-  createPeerConnection();
-
-
-  await peerConnection
-    .setRemoteDescription(
-      new RTCSessionDescription(
-        offer
-      )
-    );
-
-
-  const answer =
-    await peerConnection
-      .createAnswer();
-
-
-  await peerConnection
-    .setLocalDescription(
-      answer
-    );
-
-
-  await sendCallSignal(
-    "answer",
-    {
-      sdp: answer
-    }
-  );
-
-
-  pendingOffer = null;
-
-  callStatus.textContent =
-    "Forbinder...";
+.hidden {
+  display: none !important;
 }
 
-
-/* ---------------------------------------------------------
-   MODTAG ANSWER
---------------------------------------------------------- */
-
-async function handleAnswer(signal) {
-
-  if (
-    !peerConnection ||
-    !signal.payload?.sdp
-  ) {
-    return;
-  }
-
-
-  try {
-
-    await peerConnection
-      .setRemoteDescription(
-        new RTCSessionDescription(
-          signal.payload.sdp
-        )
-      );
-
-    callStatus.textContent =
-      "Forbinder...";
-
-  } catch (error) {
-
-    console.error(
-      "Answer fejl:",
-      error
-    );
-  }
+.screen {
+  width: 100%;
+  min-height: 100vh;
 }
 
+/* =========================
+   PIN / LOGIN
+========================= */
 
-/* ---------------------------------------------------------
-   ICE CANDIDATES
---------------------------------------------------------- */
+.lock-screen,
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 
-async function handleIceCandidate(signal) {
-
-  if (
-    !peerConnection ||
-    !signal.payload?.candidate
-  ) {
-    return;
-  }
-
-
-  try {
-
-    await peerConnection
-      .addIceCandidate(
-        new RTCIceCandidate(
-          signal.payload.candidate
-        )
-      );
-
-  } catch (error) {
-
-    console.error(
-      "ICE-fejl:",
-      error
-    );
-  }
-}
-
-
-/* ---------------------------------------------------------
-   MODTAG SIGNAL
---------------------------------------------------------- */
-
-async function handleCallSignal(signal) {
-
-  if (
-    !signal ||
-    signal.recipient_id !==
-      currentUser?.id
-  ) {
-    return;
-  }
-
-
-  switch (
-    signal.signal_type
-  ) {
-
-    case "offer":
-
-      await handleIncomingOffer(
-        signal
-      );
-
-      break;
-
-
-    case "answer":
-
-      await handleAnswer(
-        signal
-      );
-
-      break;
-
-
-    case "ice-candidate":
-
-      await handleIceCandidate(
-        signal
-      );
-
-      break;
-
-
-    case "hangup":
-
-      callStatus.textContent =
-        "Opkald afsluttet";
-
-      setTimeout(
-        closeCallLocally,
-        500
-      );
-
-      break;
-
-
-    case "decline":
-
-      callStatus.textContent =
-        "Opkaldet blev afvist";
-
-      setTimeout(
-        closeCallLocally,
-        900
-      );
-
-      break;
-
-
-    case "busy":
-
-      callStatus.textContent =
-        "Optaget";
-
-      setTimeout(
-        closeCallLocally,
-        900
-      );
-
-      break;
-  }
-}
-
-
-/* ---------------------------------------------------------
-   REALTIME FOR OPKALD
---------------------------------------------------------- */
-
-function startCallRealtime() {
-
-  if (callChannel) {
-
-    supabaseClient
-      .removeChannel(
-        callChannel
-      );
-  }
-
-
-  callChannel =
-    supabaseClient
-      .channel(
-        "call-signals-" +
-        currentUser.id
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "call_signals",
-          filter:
-            `recipient_id=eq.${currentUser.id}`
-        },
-
-        payload => {
-
-          handleCallSignal(
-            payload.new
-          );
-        }
-      )
-      .subscribe();
-}
-
-
-/* ---------------------------------------------------------
-   RYD GAMLE SIGNALER
---------------------------------------------------------- */
-
-async function deleteOldCallSignals() {
-
-  if (!currentUser) {
-    return;
-  }
-
-
-  const oneHourAgo =
-    new Date(
-      Date.now() -
-      60 * 60 * 1000
-    ).toISOString();
-
-
-  await supabaseClient
-    .from("call_signals")
-    .delete()
-    .lt(
-      "created_at",
-      oneHourAgo
+  background:
+    linear-gradient(
+      rgba(19, 27, 35, 0.90),
+      rgba(19, 27, 35, 0.96)
+    ),
+    repeating-linear-gradient(
+      45deg,
+      #263746,
+      #263746 22px,
+      #202d38 22px,
+      #202d38 44px
     );
 }
 
-
-/* ---------------------------------------------------------
-   LÆG PÅ
---------------------------------------------------------- */
-
-async function hangUp() {
-
-  if (
-    currentUser &&
-    recipientId
-  ) {
-
-    await sendCallSignal(
-      "hangup",
-      {}
-    );
-  }
-
-
-  closeCallLocally();
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 22px;
+  padding: 28px 24px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.28);
 }
 
-
-/* ---------------------------------------------------------
-   LUK OPKALD LOKALT
---------------------------------------------------------- */
-
-function closeCallLocally() {
-
-  if (peerConnection) {
-
-    peerConnection.close();
-
-    peerConnection = null;
-  }
-
-
-  if (localStream) {
-
-    localStream
-      .getTracks()
-      .forEach(
-        track =>
-          track.stop()
-      );
-
-    localStream = null;
-  }
-
-
-  localVideo.srcObject =
-    null;
-
-  remoteVideo.srcObject =
-    null;
-
-
-  localVideo.style.display =
-    "none";
-
-  remoteVideo.style.display =
-    "none";
-
-
-  callOverlay.classList.add(
-    "hidden"
-  );
-
-
-  callStatus.textContent =
-    "Forbinder...";
-
-
-  muteButton.textContent =
-    "🎤 Mute";
-
-
-  cameraButton.textContent =
-    "📷 Kamera";
-
-
-  currentCallType =
-    null;
-
-  pendingOffer =
-    null;
+.center {
+  text-align: center;
 }
 
-
-/* ---------------------------------------------------------
-   MUTE
---------------------------------------------------------- */
-
-function toggleMute() {
-
-  if (!localStream) {
-    return;
-  }
-
-
-  const audioTrack =
-    localStream
-      .getAudioTracks()[0];
-
-
-  if (!audioTrack) {
-    return;
-  }
-
-
-  audioTrack.enabled =
-    !audioTrack.enabled;
-
-
-  muteButton.textContent =
-    audioTrack.enabled
-    ? "🎤 Mute"
-    : "🔇 Unmute";
+.electric-icon {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 16px;
+  border-radius: 20px;
+  background: #17202a;
+  color: #f5b041;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
 }
 
-
-/* ---------------------------------------------------------
-   KAMERA TIL / FRA
---------------------------------------------------------- */
-
-function toggleCamera() {
-
-  if (!localStream) {
-    return;
-  }
-
-
-  const videoTrack =
-    localStream
-      .getVideoTracks()[0];
-
-
-  if (!videoTrack) {
-    return;
-  }
-
-
-  videoTrack.enabled =
-    !videoTrack.enabled;
-
-
-  cameraButton.textContent =
-    videoTrack.enabled
-    ? "📷 Kamera"
-    : "🚫 Kamera";
+h1,
+h2,
+h3 {
+  margin-top: 0;
 }
 
+.subtitle {
+  color: #6f7a83;
+  font-size: 14px;
+  margin-bottom: 22px;
+}
 
-/* ---------------------------------------------------------
-   KNAPPER
---------------------------------------------------------- */
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin: 15px 0 7px;
+}
 
-audioCallButton.addEventListener(
-  "click",
-  () => startCall("audio")
-);
+.text-input,
+.pin-input {
+  width: 100%;
+  border: 1px solid #ccd3d9;
+  border-radius: 11px;
+  padding: 14px;
+  outline: none;
+  background: white;
+}
 
+.text-input:focus,
+.pin-input:focus {
+  border-color: #34495e;
+}
 
-videoCallButton.addEventListener(
-  "click",
-  () => startCall("video")
-);
+.pin-input {
+  text-align: center;
+  font-size: 26px;
+  letter-spacing: 9px;
+}
 
+.primary-btn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 8px;
+  background: #17202a;
+  color: white;
+  font-weight: bold;
+}
 
-hangupButton.addEventListener(
-  "click",
-  hangUp
-);
+.error {
+  min-height: 18px;
+  color: #b03a2e;
+  font-size: 13px;
+  margin-top: 10px;
+}
 
+.small-info {
+  color: #87919a;
+  font-size: 12px;
+  margin-top: 15px;
+}
 
-muteButton.addEventListener(
-  "click",
-  toggleMute
-);
+/* =========================
+   CHAT
+========================= */
 
+.chat-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #e6eaed;
+}
 
-cameraButton.addEventListener(
-  "click",
-  toggleCamera
-);
-      
-    /* ---------------------------
-       SETTINGS
-    ---------------------------- */
+.topbar {
+  min-height: 68px;
+  flex-shrink: 0;
+  background: #17202a;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 9px 0 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.2);
+}
 
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      z-index: 50;
-    }
+.top-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: #2c3e50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10px;
+  font-size: 23px;
+}
 
-    .settings-panel {
-      width: 100%;
-      max-width: 520px;
-      background: white;
-      border-radius: 22px 22px 0 0;
-      padding: 23px;
-    }
+.top-title {
+  flex: 1;
+  min-width: 0;
+}
 
-    .settings-panel h3 {
-      margin-top: 0;
-    }
+.top-title strong {
+  display: block;
+  font-size: 16px;
+}
 
-    .settings-button {
-      width: 100%;
-      border: none;
-      border-radius: 10px;
-      padding: 13px;
-      margin-top: 9px;
-      background: #edf0f2;
-      color: #17202a;
-      text-align: left;
-    }
+.top-title span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  opacity: .7;
+}
 
-    .danger {
-      color: #a93226;
-    }
+.top-button {
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 21px;
+  padding: 10px 8px;
+  border-radius: 9px;
+}
 
-    .version {
-      text-align: center;
-      color: #9aa2a8;
-      font-size: 11px;
-      margin-top: 18px;
-    }
-  </style>
+.top-button:active {
+  background: rgba(255,255,255,.12);
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty-chat {
+  margin: auto;
+  padding: 30px;
+  text-align: center;
+  color: #78838c;
+  line-height: 1.5;
+}
+
+.message-row {
+  width: 100%;
+  display: flex;
+}
+
+.message-row.mine {
+  justify-content: flex-end;
+}
+
+.message-row.theirs {
+  justify-content: flex-start;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 10px 12px 7px;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.12);
+}
+
+.mine .bubble {
+  background: #d5f5e3;
+  border-bottom-right-radius: 4px;
+}
+
+.theirs .bubble {
+  background: white;
+  border-bottom-left-radius: 4px;
+}
+
+.message-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  font-size: 15px;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  font-size: 10px;
+  color: #75808a;
+}
+
+.delete-message {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #7d878e;
+}
+
+/* =========================
+   SEND
+========================= */
+
+.composer {
+  flex-shrink: 0;
+  background: #f8f9fa;
+  border-top: 1px solid #d4d9dd;
+  padding: 8px 9px max(8px, env(safe-area-inset-bottom));
+}
+
+.delete-options {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: #68737d;
+}
+
+.delete-options select {
+  border: 1px solid #ccd2d7;
+  border-radius: 7px;
+  padding: 5px 7px;
+  background: white;
+  font-size: 11px;
+}
+
+.send-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.message-input {
+  flex: 1;
+  resize: none;
+  min-height: 44px;
+  max-height: 115px;
+  border: 1px solid #ccd2d7;
+  border-radius: 20px;
+  padding: 11px 14px;
+  outline: none;
+  background: white;
+}
+
+.send-btn {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: none;
+  background: #17202a;
+  color: white;
+  font-size: 19px;
+}
+
+/* =========================
+   OVERLAYS
+========================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0,0,0,.62);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.panel {
+  width: 100%;
+  max-width: 520px;
+  background: white;
+  border-radius: 22px 22px 0 0;
+  padding: 23px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.settings-button {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  margin-top: 9px;
+  background: #edf0f2;
+  color: #17202a;
+  text-align: left;
+}
+
+.danger {
+  color: #a93226;
+}
+
+.version {
+  text-align: center;
+  font-size: 11px;
+  color: #9aa2a8;
+  margin-top: 18px;
+}
+
+/* =========================
+   CALL
+========================= */
+
+.call-panel {
+  text-align: center;
+}
+
+.call-icon {
+  font-size: 60px;
+  margin: 8px 0 5px;
+}
+
+.call-status {
+  margin: 10px 0 18px;
+  color: #68737d;
+}
+
+#remoteVideo {
+  width: 100%;
+  max-height: 390px;
+  object-fit: cover;
+  background: #111;
+  border-radius: 16px;
+  margin-bottom: 12px;
+}
+
+#localVideo {
+  width: 110px;
+  height: 145px;
+  object-fit: cover;
+  background: #111;
+  border-radius: 13px;
+  margin: 0 auto 15px;
+}
+
+.call-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+}
+
+.call-control {
+  width: auto;
+  min-width: 95px;
+  text-align: center;
+}
+
+.incoming-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.incoming-actions button {
+  flex: 1;
+}
+
+.accept-btn {
+  color: #187a37;
+}
+
+@media (max-width: 380px) {
+  .top-button {
+    padding: 9px 6px;
+    font-size: 19px;
+  }
+
+  .top-title strong {
+    font-size: 14px;
+  }
+}
+</style>
 </head>
 
 <body>
 
-  <!-- =============================================
-       PIN SKÆRM
-  ============================================== -->
+<!-- =========================
+     PIN
+========================= -->
 
-  <section id="pinScreen" class="screen lock-screen">
-    <div class="lock-card">
+<section id="pinScreen" class="screen lock-screen">
+  <div class="card center">
 
-      <div class="electric-icon">⚡</div>
+    <div class="electric-icon">⚡</div>
 
-      <h1>Elektriker Håndbog</h1>
+    <h1>Elektriker Håndbog</h1>
 
-      <div class="subtitle">
-        Opslagsværk & tekniske noter
-      </div>
+    <div class="subtitle">
+      Opslagsværk & tekniske noter
+    </div>
 
-      <div id="pinSetupText" class="small-info" style="margin-bottom:12px;">
-        Indtast din personlige PIN
-      </div>
+    <div id="pinSetupText" class="small-info" style="margin-bottom:12px;">
+      Indtast din personlige PIN
+    </div>
 
-      <input
-        id="pinInput"
-        class="pin-input"
-        type="password"
-        inputmode="numeric"
-        maxlength="6"
-        placeholder="••••••"
-        autocomplete="off"
+    <input
+      id="pinInput"
+      class="pin-input"
+      type="password"
+      inputmode="numeric"
+      maxlength="6"
+      placeholder="••••••"
+      autocomplete="off"
+    >
+
+    <div id="pinError" class="error"></div>
+
+    <button id="pinButton" class="primary-btn">
+      Åbn håndbog
+    </button>
+
+  </div>
+</section>
+
+
+<!-- =========================
+     LOGIN
+========================= -->
+
+<section id="loginScreen" class="screen login-screen hidden">
+  <div class="card">
+
+    <div class="electric-icon">⚡</div>
+
+    <h2 class="center">Elektriker Håndbog</h2>
+
+    <div class="subtitle center">
+      Log ind for at synkronisere dine data
+    </div>
+
+    <label class="field-label">
+      E-mail
+    </label>
+
+    <input
+      id="emailInput"
+      class="text-input"
+      type="email"
+      autocomplete="username"
+    >
+
+    <label class="field-label">
+      Adgangskode
+    </label>
+
+    <input
+      id="passwordInput"
+      class="text-input"
+      type="password"
+      autocomplete="current-password"
+    >
+
+    <div id="loginError" class="error"></div>
+
+    <button id="loginButton" class="primary-btn">
+      Log ind
+    </button>
+
+  </div>
+</section>
+
+
+<!-- =========================
+     CHAT
+========================= -->
+
+<section id="chatScreen" class="chat-screen hidden">
+
+  <header class="topbar">
+
+    <div class="top-icon">⚡</div>
+
+    <div class="top-title">
+      <strong>Elektriker Håndbog</strong>
+      <span id="statusText">Forbinder...</span>
+    </div>
+
+    <button
+      id="audioCallButton"
+      class="top-button"
+      aria-label="Lydopkald"
+    >
+      📞
+    </button>
+
+    <button
+      id="videoCallButton"
+      class="top-button"
+      aria-label="Videoopkald"
+    >
+      📹
+    </button>
+
+    <button
+      id="settingsButton"
+      class="top-button"
+      aria-label="Indstillinger"
+    >
+      ⋮
+    </button>
+
+  </header>
+
+  <main id="messages" class="messages">
+    <div class="empty-chat">
+      Forbinder...
+    </div>
+  </main>
+
+  <footer class="composer">
+
+    <div class="delete-options">
+      <span>Automatisk oprydning:</span>
+
+      <select id="deleteAfterSelect">
+        <option value="never">Behold</option>
+        <option value="1h">Efter 1 time</option>
+        <option value="24h">Efter 24 timer</option>
+        <option value="7d">Efter 7 dage</option>
+      </select>
+    </div>
+
+    <div class="send-row">
+
+      <textarea
+        id="messageInput"
+        class="message-input"
+        rows="1"
+        maxlength="4000"
+        placeholder="Skriv en note..."
+      ></textarea>
+
+      <button
+        id="sendButton"
+        class="send-btn"
+        aria-label="Send"
       >
-
-      <div id="pinError" class="error"></div>
-
-      <button id="pinButton" class="primary-btn">
-        Åbn håndbog
+        ➤
       </button>
 
-      <div class="small-info">
-        Personlig adgang
-      </div>
-
     </div>
-  </section>
+
+  </footer>
+
+</section>
 
 
-  <!-- =============================================
-       LOGIN
-  ============================================== -->
-
-  <section id="loginScreen" class="screen login-screen hidden">
-    <div class="login-card">
-
-      <div class="electric-icon">⚡</div>
-
-      <h2>Elektriker Håndbog</h2>
-
-      <div class="subtitle" style="text-align:center;">
-        Log ind for at synkronisere dine data
-      </div>
-
-      <label class="field-label">
-        E-mail
-      </label>
-
-      <input
-        id="emailInput"
-        class="text-input"
-        type="email"
-        autocomplete="username"
-      >
-
-      <label class="field-label">
-        Adgangskode
-      </label>
-
-      <input
-        id="passwordInput"
-        class="text-input"
-        type="password"
-        autocomplete="current-password"
-      >
-
-      <div id="loginError" class="error" style="margin-top:12px;"></div>
-
-      <button id="loginButton" class="primary-btn">
-        Log ind
-      </button>
-
-    </div>
-  </section>
-
-
-  <!-- =============================================
-       CHAT
-  ============================================== -->
-
-  <section id="chatScreen" class="chat-screen hidden">
-
-    <header class="topbar">
-
-      <div class="top-icon">
-        ⚡
-      </div>
-
-      <div class="top-title">
-        <strong>Elektriker Håndbog</strong>
-        <span id="statusText">Synkroniseret</span>
-      </div>
-
-     <button
-  id="audioCallButton"
-  class="top-button"
-  aria-label="Lydopkald"
-  title="Lydopkald"
->
-  📞
-</button>
-
-<button
-  id="videoCallButton"
-  class="top-button"
-  aria-label="Videoopkald"
-  title="Videoopkald"
->
-  📹
-</button>
-
-<button
-  id="settingsButton"
-  class="top-button"
-  aria-label="Indstillinger"
-  onclick="document.getElementById('settingsOverlay').classList.remove('hidden')"
->
-  ⋮
-</button>
-
-    </header>
-
-
-    <main id="messages" class="messages">
-
-      <div class="empty-chat">
-        Ingen noter endnu.
-      </div>
-
-    </main>
-
-
-    <footer class="composer">
-
-      <div class="delete-options">
-
-        <span>Automatisk oprydning:</span>
-
-        <select id="deleteAfterSelect">
-          <option value="never">Behold</option>
-          <option value="1h">Efter 1 time</option>
-          <option value="24h">Efter 24 timer</option>
-          <option value="7d">Efter 7 dage</option>
-        </select>
-
-      </div>
-
-      <div class="send-row">
-
-        <textarea
-          id="messageInput"
-          class="message-input"
-          rows="1"
-          maxlength="4000"
-          placeholder="Skriv en note..."
-        ></textarea>
-
-        <button
-          id="sendButton"
-          class="send-btn"
-          aria-label="Send"
-        >
-          ➤
-        </button>
-
-      </div>
-
-    </footer>
-
-  </section>
-<!-- =============================================
+<!-- =========================
      OPKALD
-============================================== -->
+========================= -->
 
 <div id="callOverlay" class="overlay hidden">
 
-  <div class="settings-panel" style="text-align:center;">
+  <div class="panel call-panel">
+
+    <div id="callIcon" class="call-icon">📞</div>
 
     <h3 id="callTitle">Opkald</h3>
 
-    <div id="callStatus" style="
-      margin: 12px 0 18px;
-      color:#68737d;
-    ">
+    <div id="callStatus" class="call-status">
       Forbinder...
     </div>
 
@@ -1478,14 +678,7 @@ cameraButton.addEventListener(
       id="remoteVideo"
       autoplay
       playsinline
-      style="
-        width:100%;
-        max-height:320px;
-        border-radius:16px;
-        background:#111;
-        display:none;
-        margin-bottom:12px;
-      "
+      class="hidden"
     ></video>
 
     <video
@@ -1493,44 +686,46 @@ cameraButton.addEventListener(
       autoplay
       muted
       playsinline
-      style="
-        width:120px;
-        height:160px;
-        object-fit:cover;
-        border-radius:14px;
-        background:#111;
-        display:none;
-        margin:0 auto 16px;
-      "
+      class="hidden"
     ></video>
 
-    <div style="
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      flex-wrap:wrap;
-    ">
+    <div id="incomingActions" class="incoming-actions hidden">
+
+      <button
+        id="acceptCallButton"
+        class="settings-button accept-btn"
+      >
+        ✅ Besvar
+      </button>
+
+      <button
+        id="declineCallButton"
+        class="settings-button danger"
+      >
+        ❌ Afvis
+      </button>
+
+    </div>
+
+    <div id="activeCallActions" class="call-buttons hidden">
 
       <button
         id="muteButton"
-        class="settings-button"
-        style="width:auto;"
+        class="settings-button call-control"
       >
         🎤 Mute
       </button>
 
       <button
         id="cameraButton"
-        class="settings-button"
-        style="width:auto;"
+        class="settings-button call-control"
       >
         📷 Kamera
       </button>
 
       <button
         id="hangupButton"
-        class="settings-button danger"
-        style="width:auto;"
+        class="settings-button call-control danger"
       >
         📵 Læg på
       </button>
@@ -1541,39 +736,52 @@ cameraButton.addEventListener(
 
 </div>
 
-  <!-- =============================================
-       SETTINGS MENU
-  ============================================== -->
 
-  <div id="settingsOverlay" class="overlay hidden">
+<!-- =========================
+     SETTINGS
+========================= -->
 
-    <div class="settings-panel">
+<div id="settingsOverlay" class="overlay hidden">
 
-      <h3>Indstillinger</h3>
+  <div class="panel">
 
-      <button id="changePinButton" class="settings-button">
-        🔒 Skift PIN-kode
-      </button>
+    <h3>Indstillinger</h3>
 
-      <button id="lockButton" class="settings-button">
-        🔐 Lås håndbogen
-      </button>
+    <button
+      id="changePinButton"
+      class="settings-button"
+    >
+      🔒 Skift PIN-kode
+    </button>
 
-      <button id="logoutButton" class="settings-button danger">
-        Log ud
-      </button>
+    <button
+      id="lockButton"
+      class="settings-button"
+    >
+      🔐 Lås håndbogen
+    </button>
 
-      <button id="closeSettingsButton" class="settings-button">
-        Luk
-      </button>
+    <button
+      id="logoutButton"
+      class="settings-button danger"
+    >
+      Log ud
+    </button>
 
-      <div class="version">
-        Elektriker Håndbog · version 1.0
-      </div>
+    <button
+      id="closeSettingsButton"
+      class="settings-button"
+    >
+      Luk
+    </button>
 
+    <div class="version">
+      Elektriker Håndbog · version 2.0
     </div>
 
   </div>
+
+</div>
 
 
 <script>
@@ -1584,18 +792,8 @@ cameraButton.addEventListener(
 const SUPABASE_URL =
   "https://uqtjszxgvefzhydqnmik.supabase.co";
 
-/*
-  VIGTIGT:
-
-  SLET teksten DIN_PUBLISHABLE_KEY_HER nedenfor
-  og indsæt din Publishable key fra Supabase.
-
-  Brug IKKE Secret key.
-*/
-
 const SUPABASE_KEY =
   "sb_publishable_36u1t6M3nNr7VjeN6nVMaA_BUOu0jJf";
-
 
 const supabaseClient =
   window.supabase.createClient(
@@ -1652,6 +850,28 @@ const sendButton =
 
 const deleteAfterSelect =
   document.getElementById("deleteAfterSelect");
+
+const statusText =
+  document.getElementById("statusText");
+
+const settingsButton =
+  document.getElementById("settingsButton");
+
+const settingsOverlay =
+  document.getElementById("settingsOverlay");
+
+const closeSettingsButton =
+  document.getElementById("closeSettingsButton");
+
+const changePinButton =
+  document.getElementById("changePinButton");
+
+const lockButton =
+  document.getElementById("lockButton");
+
+const logoutButton =
+  document.getElementById("logoutButton");
+
 const audioCallButton =
   document.getElementById("audioCallButton");
 
@@ -1660,6 +880,9 @@ const videoCallButton =
 
 const callOverlay =
   document.getElementById("callOverlay");
+
+const callIcon =
+  document.getElementById("callIcon");
 
 const callTitle =
   document.getElementById("callTitle");
@@ -1673,6 +896,18 @@ const remoteVideo =
 const localVideo =
   document.getElementById("localVideo");
 
+const incomingActions =
+  document.getElementById("incomingActions");
+
+const activeCallActions =
+  document.getElementById("activeCallActions");
+
+const acceptCallButton =
+  document.getElementById("acceptCallButton");
+
+const declineCallButton =
+  document.getElementById("declineCallButton");
+
 const muteButton =
   document.getElementById("muteButton");
 
@@ -1681,27 +916,6 @@ const cameraButton =
 
 const hangupButton =
   document.getElementById("hangupButton");
-  
-const settingsButton =
-  document.getElementById("settingsButton");
-
-const settingsOverlay =
-  document.getElementById("settingsOverlay");
-
-const closeSettingsButton =
-  document.getElementById("closeSettingsButton");
-
-const logoutButton =
-  document.getElementById("logoutButton");
-
-const lockButton =
-  document.getElementById("lockButton");
-
-const changePinButton =
-  document.getElementById("changePinButton");
-
-const statusText =
-  document.getElementById("statusText");
 
 
 /* =========================================================
@@ -1709,21 +923,24 @@ const statusText =
 ========================================================= */
 
 let currentUser = null;
-
 let recipientId = null;
 
 let realtimeChannel = null;
+let callChannel = null;
 
 let pinUnlocked = false;
 
 let peerConnection = null;
 let localStream = null;
+
 let currentCallType = null;
-let callChannel = null;
-let pendingOffer = null;
-  
+let pendingIncomingCall = null;
+
+let queuedIceCandidates = [];
+
+
 /* =========================================================
-   HJÆLPEFUNKTIONER
+   GENERELT
 ========================================================= */
 
 function showOnly(screen) {
@@ -1736,22 +953,13 @@ function showOnly(screen) {
 }
 
 
-function scrollToBottom() {
-
-  setTimeout(() => {
-
-    messagesContainer.scrollTop =
-      messagesContainer.scrollHeight;
-
-  }, 50);
-}
-
-
 function escapeHTML(text) {
 
-  const div = document.createElement("div");
+  const div =
+    document.createElement("div");
 
-  div.textContent = text;
+  div.textContent =
+    text ?? "";
 
   return div.innerHTML;
 }
@@ -1759,10 +967,9 @@ function escapeHTML(text) {
 
 function formatTime(dateString) {
 
-  const date =
-    new Date(dateString);
-
-  return date.toLocaleTimeString(
+  return new Date(
+    dateString
+  ).toLocaleTimeString(
     "da-DK",
     {
       hour: "2-digit",
@@ -1771,8 +978,20 @@ function formatTime(dateString) {
   );
 }
 
+
+function scrollToBottom() {
+
+  setTimeout(() => {
+
+    messagesContainer.scrollTop =
+      messagesContainer.scrollHeight;
+
+  }, 30);
+}
+
+
 /* =========================================================
-   PIN - SIKKER LOKAL LAGRING
+   PIN
 ========================================================= */
 
 const PIN_STORAGE_KEY =
@@ -1796,7 +1015,9 @@ function bytesToBase64(bytes) {
   let binary = "";
 
   bytes.forEach(byte => {
-    binary += String.fromCharCode(byte);
+
+    binary +=
+      String.fromCharCode(byte);
   });
 
   return btoa(binary);
@@ -1805,7 +1026,8 @@ function bytesToBase64(bytes) {
 
 function base64ToBytes(base64) {
 
-  const binary = atob(base64);
+  const binary =
+    atob(base64);
 
   return Uint8Array.from(
     binary,
@@ -1814,7 +1036,10 @@ function base64ToBytes(base64) {
 }
 
 
-async function createPinHash(pin, salt) {
+async function createPinHash(
+  pin,
+  salt
+) {
 
   const encoder =
     new TextEncoder();
@@ -1828,11 +1053,11 @@ async function createPinHash(pin, salt) {
       ["deriveBits"]
     );
 
-  const derivedBits =
+  const bits =
     await crypto.subtle.deriveBits(
       {
         name: "PBKDF2",
-        salt: salt,
+        salt,
         iterations: 200000,
         hash: "SHA-256"
       },
@@ -1840,9 +1065,7 @@ async function createPinHash(pin, salt) {
       256
     );
 
-  return new Uint8Array(
-    derivedBits
-  );
+  return new Uint8Array(bits);
 }
 
 
@@ -1859,18 +1082,17 @@ async function savePinSecurely(pin) {
       salt
     );
 
-  const record = {
-    salt: bytesToBase64(salt),
-    hash: bytesToBase64(hash)
-  };
-
   localStorage.setItem(
     PIN_STORAGE_KEY,
-    JSON.stringify(record)
+    JSON.stringify({
+      salt:
+        bytesToBase64(salt),
+
+      hash:
+        bytesToBase64(hash)
+    })
   );
 
-  // Fjern gammel PIN i klartekst,
-  // hvis den findes.
   localStorage.removeItem(
     OLD_PIN_STORAGE_KEY
   );
@@ -1879,87 +1101,79 @@ async function savePinSecurely(pin) {
 
 async function verifyPin(pin) {
 
-  const secureRecord =
+  const recordString =
     localStorage.getItem(
       PIN_STORAGE_KEY
     );
 
-
-  // Ny sikker metode
-  if (secureRecord) {
+  if (recordString) {
 
     try {
 
       const record =
-        JSON.parse(secureRecord);
+        JSON.parse(recordString);
 
       const salt =
         base64ToBytes(
           record.salt
         );
 
-      const savedHash =
+      const oldHash =
         base64ToBytes(
           record.hash
         );
 
-      const enteredHash =
+      const newHash =
         await createPinHash(
           pin,
           salt
         );
 
-
       if (
-        savedHash.length !==
-        enteredHash.length
+        oldHash.length !==
+        newHash.length
       ) {
         return false;
       }
-
 
       let difference = 0;
 
       for (
         let i = 0;
-        i < savedHash.length;
+        i < oldHash.length;
         i++
       ) {
 
         difference |=
-          savedHash[i] ^
-          enteredHash[i];
+          oldHash[i] ^
+          newHash[i];
       }
 
       return difference === 0;
 
     } catch (error) {
 
-      console.error(
-        "PIN-data kunne ikke læses",
-        error
-      );
+      console.error(error);
 
       return false;
     }
   }
 
 
-  // Hvis den gamle version af appen
-  // allerede har gemt PIN i klartekst:
   const oldPin =
     localStorage.getItem(
       OLD_PIN_STORAGE_KEY
     );
+
 
   if (
     oldPin &&
     pin === oldPin
   ) {
 
-    // Flyt automatisk over
-    // til den nye sikre lagring.
-    await savePinSecurely(pin);
+    await savePinSecurely(
+      pin
+    );
 
     return true;
   }
@@ -1971,47 +1185,41 @@ async function verifyPin(pin) {
 
 function setupPinScreen() {
 
+  pinUnlocked = false;
+
   pinInput.value = "";
   pinError.textContent = "";
 
-  if (!hasSavedPin()) {
-
-    pinSetupText.textContent =
-      "Første gang: vælg en personlig PIN på 4-6 cifre";
-
-    pinButton.textContent =
-      "Gem PIN";
-
-  } else {
+  if (hasSavedPin()) {
 
     pinSetupText.textContent =
       "Indtast din personlige PIN";
 
     pinButton.textContent =
       "Åbn håndbog";
+
+  } else {
+
+    pinSetupText.textContent =
+      "Første gang: vælg en PIN på 4-6 cifre";
+
+    pinButton.textContent =
+      "Gem PIN";
   }
 
-
-  showOnly(pinScreen);
-
-
-  setTimeout(
-    () => pinInput.focus(),
-    150
+  showOnly(
+    pinScreen
   );
 }
 
 
 async function handlePin() {
 
-  const enteredPin =
+  const pin =
     pinInput.value.trim();
 
-
   if (
-    !/^\d{4,6}$/.test(
-      enteredPin
-    )
+    !/^\d{4,6}$/.test(pin)
   ) {
 
     pinError.textContent =
@@ -2024,12 +1232,10 @@ async function handlePin() {
   pinButton.disabled = true;
 
 
-  // Ingen PIN endnu =
-  // første opsætning
   if (!hasSavedPin()) {
 
     await savePinSecurely(
-      enteredPin
+      pin
     );
 
     pinUnlocked = true;
@@ -2044,7 +1250,7 @@ async function handlePin() {
 
   const correct =
     await verifyPin(
-      enteredPin
+      pin
     );
 
 
@@ -2057,8 +1263,6 @@ async function handlePin() {
       "Forkert PIN.";
 
     pinInput.value = "";
-
-    pinInput.focus();
 
     return;
   }
@@ -2075,7 +1279,9 @@ async function continueAfterPin() {
   const {
     data: { session }
   } =
-    await supabaseClient.auth.getSession();
+    await supabaseClient
+      .auth
+      .getSession();
 
 
   if (session?.user) {
@@ -2148,10 +1354,12 @@ async function login() {
     data,
     error
   } =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+    await supabaseClient
+      .auth
+      .signInWithPassword({
+        email,
+        password
+      });
 
 
   loginButton.disabled = false;
@@ -2162,8 +1370,10 @@ async function login() {
 
   if (error) {
 
+    console.error(error);
+
     loginError.textContent =
-      "Login mislykkedes. Kontrollér oplysningerne.";
+      "Login mislykkedes.";
 
     return;
   }
@@ -2173,6 +1383,8 @@ async function login() {
     data.user;
 
   passwordInput.value = "";
+
+  pinUnlocked = true;
 
   await openChat();
 }
@@ -2188,7 +1400,9 @@ passwordInput.addEventListener(
   "keydown",
   event => {
 
-    if (event.key === "Enter") {
+    if (
+      event.key === "Enter"
+    ) {
 
       login();
     }
@@ -2197,19 +1411,10 @@ passwordInput.addEventListener(
 
 
 /* =========================================================
-   FIND DEN ANDEN BRUGER
+   FIND CHATPARTNER
 ========================================================= */
 
 async function findRecipient() {
-
-  /*
-    Vi kan ikke læse auth.users direkte fra browseren.
-
-    Derfor finder vi modparten via en sikker
-    databasefunktion, som vi opretter i næste trin.
-
-    Indtil den funktion findes, viser appen en fejl.
-  */
 
   const {
     data,
@@ -2225,6 +1430,7 @@ async function findRecipient() {
     console.error(error);
 
     throw new Error(
+      error.message ||
       "Kunne ikke finde chatpartner."
     );
   }
@@ -2238,7 +1444,8 @@ async function findRecipient() {
   }
 
 
-  recipientId = data;
+  recipientId =
+    data;
 }
 
 
@@ -2248,7 +1455,9 @@ async function findRecipient() {
 
 async function openChat() {
 
-  showOnly(chatScreen);
+  showOnly(
+    chatScreen
+  );
 
   statusText.textContent =
     "Forbinder...";
@@ -2260,41 +1469,39 @@ async function openChat() {
 
     await loadMessages();
 
-    startRealtime();
-startCallRealtime();
-deleteOldCallSignals();
+    startMessageRealtime();
 
-statusText.textContent =
-  "Synkroniseret";
+    startCallRealtime();
 
-} catch (error) {
+    deleteOldCallSignals();
 
-  console.error(error);
+    statusText.textContent =
+      "Synkroniseret";
 
-  statusText.textContent =
-    "Forbindelsesfejl";
+  } catch (error) {
 
-  const errorText =
-    error?.message ||
-    error?.details ||
-    JSON.stringify(error);
+    console.error(error);
 
-  messagesContainer.innerHTML =
-    `
-    <div class="empty-chat">
-      <b>Chatten kunne ikke forbindes.</b>
-      <br><br>
-      Fejl:
-      <br>
-      ${escapeHTML(errorText)}
-    </div>
-    `;
-}
+    statusText.textContent =
+      "Forbindelsesfejl";
+
+    messagesContainer.innerHTML =
+      `
+      <div class="empty-chat">
+        <b>Chatten kunne ikke forbindes.</b>
+        <br><br>
+        ${escapeHTML(
+          error?.message ||
+          String(error)
+        )}
+      </div>
+      `;
+  }
 }
 
 
 /* =========================================================
-   HENT BESKEDER
+   BESKEDER
 ========================================================= */
 
 async function loadMessages() {
@@ -2311,21 +1518,22 @@ async function loadMessages() {
       )
       .order(
         "created_at",
-        { ascending: true }
+        {
+          ascending: true
+        }
       );
 
 
   if (error) {
-
     throw error;
   }
 
 
   const now =
-    new Date();
+    Date.now();
 
 
-  const visibleMessages =
+  const messages =
     (data || []).filter(message => {
 
       if (message.deleted_at) {
@@ -2334,7 +1542,9 @@ async function loadMessages() {
 
       if (
         message.delete_after &&
-        new Date(message.delete_after) <= now
+        new Date(
+          message.delete_after
+        ).getTime() <= now
       ) {
         return false;
       }
@@ -2344,14 +1554,10 @@ async function loadMessages() {
 
 
   renderMessages(
-    visibleMessages
+    messages
   );
 }
 
-
-/* =========================================================
-   VIS BESKEDER
-========================================================= */
 
 function renderMessages(messages) {
 
@@ -2371,71 +1577,71 @@ function renderMessages(messages) {
   }
 
 
-  messages.forEach(
-    message => {
+  messages.forEach(message => {
 
-      const mine =
-        message.sender_id === currentUser.id;
-
-      const row =
-        document.createElement("div");
-
-      row.className =
-        `message-row ${mine ? "mine" : "theirs"}`;
+    const mine =
+      message.sender_id ===
+      currentUser.id;
 
 
-      const bubble =
-        document.createElement("div");
+    const row =
+      document.createElement("div");
 
-      bubble.className =
-        "bubble";
+    row.className =
+      "message-row " +
+      (
+        mine
+        ? "mine"
+        : "theirs"
+      );
 
 
-      const safeText =
-        escapeHTML(
-          message.message_text
-        );
+    const bubble =
+      document.createElement("div");
+
+    bubble.className =
+      "bubble";
 
 
-      let deleteButton = "";
-
-      if (mine) {
-
-        deleteButton =
-          `
+    const deleteButton =
+      mine
+      ? `
           <button
             class="delete-message"
             data-id="${message.id}"
-            title="Slet"
           >
             🗑
           </button>
-          `;
-      }
-
-
-      bubble.innerHTML =
         `
-        <div class="message-text">
-          ${safeText}
-        </div>
-
-        <div class="message-meta">
-          ${formatTime(message.created_at)}
-          ${deleteButton}
-        </div>
-        `;
+      : "";
 
 
-      row.appendChild(
-        bubble
-      );
+    bubble.innerHTML =
+      `
+      <div class="message-text">
+        ${escapeHTML(
+          message.message_text
+        )}
+      </div>
 
-      messagesContainer.appendChild(
-        row
-      );
-    }
-  );
+      <div class="message-meta">
+        ${formatTime(
+          message.created_at
+        )}
+
+        ${deleteButton}
+      </div>
+      `;
+
+
+    row.appendChild(
+      bubble
+    );
+
+    messagesContainer.appendChild(
+      row
+    );
+  });
 
 
   document
@@ -2446,12 +1652,10 @@ function renderMessages(messages) {
 
       button.addEventListener(
         "click",
-        () => {
-
+        () =>
           deleteMessage(
             button.dataset.id
-          );
-        }
+          )
       );
     });
 
@@ -2459,10 +1663,6 @@ function renderMessages(messages) {
   scrollToBottom();
 }
 
-
-/* =========================================================
-   SEND BESKED
-========================================================= */
 
 async function sendMessage() {
 
@@ -2479,40 +1679,40 @@ async function sendMessage() {
   }
 
 
-  let deleteAfter = null;
-
-  const deleteChoice =
+  const choice =
     deleteAfterSelect.value;
 
+  let deleteAfter = null;
+
   const now =
-    new Date();
+    Date.now();
 
 
-  if (deleteChoice === "1h") {
+  if (choice === "1h") {
 
     deleteAfter =
       new Date(
-        now.getTime() +
+        now +
         60 * 60 * 1000
       ).toISOString();
-  }
 
-
-  if (deleteChoice === "24h") {
+  } else if (
+    choice === "24h"
+  ) {
 
     deleteAfter =
       new Date(
-        now.getTime() +
+        now +
         24 * 60 * 60 * 1000
       ).toISOString();
-  }
 
-
-  if (deleteChoice === "7d") {
+  } else if (
+    choice === "7d"
+  ) {
 
     deleteAfter =
       new Date(
-        now.getTime() +
+        now +
         7 * 24 * 60 * 60 * 1000
       ).toISOString();
   }
@@ -2564,65 +1764,13 @@ async function sendMessage() {
 }
 
 
-sendButton.addEventListener(
-  "click",
-  sendMessage
-);
-
-
-messageInput.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey
-    ) {
-
-      event.preventDefault();
-
-      sendMessage();
-    }
-  }
-);
-
-
-/* =========================================================
-   AUTO RESIZE TEXTAREA
-========================================================= */
-
-function resizeMessageBox() {
-
-  messageInput.style.height =
-    "44px";
-
-  messageInput.style.height =
-    Math.min(
-      messageInput.scrollHeight,
-      110
-    ) + "px";
-}
-
-
-messageInput.addEventListener(
-  "input",
-  resizeMessageBox
-);
-
-
-/* =========================================================
-   SLET BESKED
-========================================================= */
-
 async function deleteMessage(id) {
 
-  const confirmed =
-    confirm(
+  if (
+    !confirm(
       "Vil du slette denne besked?"
-    );
-
-
-  if (!confirmed) {
+    )
+  ) {
     return;
   }
 
@@ -2655,25 +1803,67 @@ async function deleteMessage(id) {
 }
 
 
+sendButton.addEventListener(
+  "click",
+  sendMessage
+);
+
+
+messageInput.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
+
+      event.preventDefault();
+
+      sendMessage();
+    }
+  }
+);
+
+
+function resizeMessageBox() {
+
+  messageInput.style.height =
+    "44px";
+
+  messageInput.style.height =
+    Math.min(
+      messageInput.scrollHeight,
+      115
+    ) + "px";
+}
+
+
+messageInput.addEventListener(
+  "input",
+  resizeMessageBox
+);
+
+
 /* =========================================================
-   REALTIME
+   REALTIME BESKEDER
 ========================================================= */
 
-function startRealtime() {
+function startMessageRealtime() {
 
   if (realtimeChannel) {
 
-    supabaseClient
-      .removeChannel(
-        realtimeChannel
-      );
+    supabaseClient.removeChannel(
+      realtimeChannel
+    );
   }
 
 
   realtimeChannel =
     supabaseClient
       .channel(
-        "private-chat"
+        "private-chat-" +
+        currentUser.id
       )
       .on(
         "postgres_changes",
@@ -2682,22 +1872,22 @@ function startRealtime() {
           schema: "public",
           table: "messages"
         },
-
         payload => {
 
           const message =
             payload.new ||
             payload.old;
 
-
           if (!message) {
             return;
           }
 
-
           if (
-            message.sender_id === currentUser.id ||
-            message.recipient_id === currentUser.id
+            message.sender_id ===
+              currentUser.id ||
+
+            message.recipient_id ===
+              currentUser.id
           ) {
 
             loadMessages();
@@ -2709,24 +1899,1050 @@ function startRealtime() {
 
 
 /* =========================================================
+   WEBRTC
+========================================================= */
+
+const RTC_CONFIG = {
+
+  iceServers: [
+
+    {
+      urls:
+        "stun:stun.l.google.com:19302"
+    },
+
+    {
+      urls:
+        "stun:stun1.l.google.com:19302"
+    }
+  ]
+};
+
+
+async function sendCallSignal(
+  signalType,
+  payload = {}
+) {
+
+  if (
+    !currentUser ||
+    !recipientId
+  ) {
+    return;
+  }
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from("call_signals")
+      .insert({
+        sender_id:
+          currentUser.id,
+
+        recipient_id:
+          recipientId,
+
+        signal_type:
+          signalType,
+
+        payload
+      });
+
+
+  if (error) {
+
+    console.error(
+      "Call signal error:",
+      error
+    );
+  }
+}
+
+
+function createPeerConnection() {
+
+  if (peerConnection) {
+
+    peerConnection.close();
+  }
+
+
+  peerConnection =
+    new RTCPeerConnection(
+      RTC_CONFIG
+    );
+
+
+  peerConnection.onicecandidate =
+    event => {
+
+      if (
+        event.candidate
+      ) {
+
+        sendCallSignal(
+          "ice-candidate",
+          {
+            candidate:
+              event.candidate.toJSON()
+          }
+        );
+      }
+    };
+
+
+  peerConnection.ontrack =
+    event => {
+
+      if (
+        event.streams &&
+        event.streams[0]
+      ) {
+
+        remoteVideo.srcObject =
+          event.streams[0];
+
+        remoteVideo
+          .play()
+          .catch(() => {});
+      }
+    };
+
+
+  peerConnection.onconnectionstatechange =
+    () => {
+
+      if (!peerConnection) {
+        return;
+      }
+
+      const state =
+        peerConnection
+          .connectionState;
+
+
+      if (
+        state === "connected"
+      ) {
+
+        callStatus.textContent =
+          "Forbundet";
+
+      } else if (
+        state === "connecting"
+      ) {
+
+        callStatus.textContent =
+          "Forbinder...";
+
+      } else if (
+        state === "failed"
+      ) {
+
+        callStatus.textContent =
+          "Kunne ikke forbinde";
+
+      } else if (
+        state === "disconnected"
+      ) {
+
+        callStatus.textContent =
+          "Forbindelsen blev afbrudt";
+      }
+    };
+
+
+  if (localStream) {
+
+    localStream
+      .getTracks()
+      .forEach(track => {
+
+        peerConnection.addTrack(
+          track,
+          localStream
+        );
+      });
+  }
+
+
+  return peerConnection;
+}
+
+
+async function getLocalMedia(type) {
+
+  try {
+
+    localStream =
+      await navigator.mediaDevices
+        .getUserMedia({
+
+          audio: true,
+
+          video:
+            type === "video"
+            ? {
+                facingMode:
+                  "user"
+              }
+            : false
+        });
+
+
+    if (
+      type === "video"
+    ) {
+
+      localVideo.srcObject =
+        localStream;
+
+      localVideo.classList.remove(
+        "hidden"
+      );
+
+      remoteVideo.classList.remove(
+        "hidden"
+      );
+
+      cameraButton.classList.remove(
+        "hidden"
+      );
+
+    } else {
+
+      localVideo.classList.add(
+        "hidden"
+      );
+
+      remoteVideo.classList.add(
+        "hidden"
+      );
+
+      cameraButton.classList.add(
+        "hidden"
+      );
+    }
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      type === "video"
+      ? "Du skal give adgang til mikrofon og kamera."
+      : "Du skal give adgang til mikrofonen."
+    );
+
+    return false;
+  }
+}
+
+
+/* =========================================================
+   START UDGÅENDE OPKALD
+========================================================= */
+
+async function startCall(type) {
+
+  if (
+    !currentUser ||
+    !recipientId
+  ) {
+
+    alert(
+      "Chatten er ikke klar."
+    );
+
+    return;
+  }
+
+
+  if (peerConnection) {
+
+    alert(
+      "Der er allerede et opkald i gang."
+    );
+
+    return;
+  }
+
+
+  currentCallType =
+    type;
+
+
+  showOutgoingCallUI(
+    type
+  );
+
+
+  const ready =
+    await getLocalMedia(
+      type
+    );
+
+
+  if (!ready) {
+
+    closeCallLocally();
+
+    return;
+  }
+
+
+  createPeerConnection();
+
+
+  const offer =
+    await peerConnection
+      .createOffer();
+
+
+  await peerConnection
+    .setLocalDescription(
+      offer
+    );
+
+
+  await sendCallSignal(
+    "offer",
+    {
+      callType:
+        type,
+
+      sdp:
+        peerConnection
+          .localDescription
+          .toJSON()
+    }
+  );
+
+
+  callStatus.textContent =
+    "Ringer...";
+}
+
+
+function showOutgoingCallUI(type) {
+
+  callOverlay.classList.remove(
+    "hidden"
+  );
+
+  callIcon.textContent =
+    type === "video"
+    ? "📹"
+    : "📞";
+
+  callTitle.textContent =
+    type === "video"
+    ? "Videoopkald"
+    : "Lydopkald";
+
+  callStatus.textContent =
+    "Starter...";
+
+  incomingActions.classList.add(
+    "hidden"
+  );
+
+  activeCallActions.classList.remove(
+    "hidden"
+  );
+}
+
+
+/* =========================================================
+   INDKOMMENDE OPKALD
+========================================================= */
+
+function showIncomingCallUI(type) {
+
+  callOverlay.classList.remove(
+    "hidden"
+  );
+
+  callIcon.textContent =
+    type === "video"
+    ? "📹"
+    : "📞";
+
+  callTitle.textContent =
+    type === "video"
+    ? "Indgående videoopkald"
+    : "Indgående lydopkald";
+
+  callStatus.textContent =
+    "Vil du besvare?";
+
+  incomingActions.classList.remove(
+    "hidden"
+  );
+
+  activeCallActions.classList.add(
+    "hidden"
+  );
+
+  localVideo.classList.add(
+    "hidden"
+  );
+
+  remoteVideo.classList.add(
+    "hidden"
+  );
+}
+
+
+async function handleIncomingOffer(
+  signal
+) {
+
+  if (peerConnection) {
+
+    await sendCallSignal(
+      "busy"
+    );
+
+    return;
+  }
+
+
+  const sdp =
+    signal.payload?.sdp;
+
+  const type =
+    signal.payload?.callType ||
+    "audio";
+
+
+  if (!sdp) {
+    return;
+  }
+
+
+  pendingIncomingCall = {
+    signal,
+    sdp,
+    type
+  };
+
+
+  showIncomingCallUI(
+    type
+  );
+}
+
+
+async function acceptIncomingCall() {
+
+  if (!pendingIncomingCall) {
+    return;
+  }
+
+
+  const {
+    sdp,
+    type
+  } =
+    pendingIncomingCall;
+
+
+  currentCallType =
+    type;
+
+
+  incomingActions.classList.add(
+    "hidden"
+  );
+
+  activeCallActions.classList.remove(
+    "hidden"
+  );
+
+  callStatus.textContent =
+    "Besvarer...";
+
+
+  const ready =
+    await getLocalMedia(
+      type
+    );
+
+
+  if (!ready) {
+
+    await sendCallSignal(
+      "decline"
+    );
+
+    closeCallLocally();
+
+    return;
+  }
+
+
+  createPeerConnection();
+
+
+  await peerConnection
+    .setRemoteDescription(
+      new RTCSessionDescription(
+        sdp
+      )
+    );
+
+
+  await flushQueuedIceCandidates();
+
+
+  const answer =
+    await peerConnection
+      .createAnswer();
+
+
+  await peerConnection
+    .setLocalDescription(
+      answer
+    );
+
+
+  await sendCallSignal(
+    "answer",
+    {
+      sdp:
+        peerConnection
+          .localDescription
+          .toJSON()
+    }
+  );
+
+
+  pendingIncomingCall =
+    null;
+
+
+  callStatus.textContent =
+    "Forbinder...";
+}
+
+
+async function declineIncomingCall() {
+
+  await sendCallSignal(
+    "decline"
+  );
+
+  pendingIncomingCall =
+    null;
+
+  closeCallLocally();
+}
+
+
+/* =========================================================
+   ANSWER
+========================================================= */
+
+async function handleAnswer(signal) {
+
+  if (
+    !peerConnection ||
+    !signal.payload?.sdp
+  ) {
+    return;
+  }
+
+
+  try {
+
+    await peerConnection
+      .setRemoteDescription(
+        new RTCSessionDescription(
+          signal.payload.sdp
+        )
+      );
+
+
+    await flushQueuedIceCandidates();
+
+
+    callStatus.textContent =
+      "Forbinder...";
+
+  } catch (error) {
+
+    console.error(
+      "Answer error:",
+      error
+    );
+  }
+}
+
+
+/* =========================================================
+   ICE
+========================================================= */
+
+async function handleIceCandidate(
+  signal
+) {
+
+  const candidate =
+    signal.payload?.candidate;
+
+
+  if (!candidate) {
+    return;
+  }
+
+
+  if (
+    !peerConnection ||
+    !peerConnection.remoteDescription
+  ) {
+
+    queuedIceCandidates.push(
+      candidate
+    );
+
+    return;
+  }
+
+
+  try {
+
+    await peerConnection
+      .addIceCandidate(
+        new RTCIceCandidate(
+          candidate
+        )
+      );
+
+  } catch (error) {
+
+    console.error(
+      "ICE error:",
+      error
+    );
+  }
+}
+
+
+async function flushQueuedIceCandidates() {
+
+  if (
+    !peerConnection ||
+    !peerConnection.remoteDescription
+  ) {
+    return;
+  }
+
+
+  const candidates =
+    [...queuedIceCandidates];
+
+  queuedIceCandidates = [];
+
+
+  for (
+    const candidate
+    of candidates
+  ) {
+
+    try {
+
+      await peerConnection
+        .addIceCandidate(
+          new RTCIceCandidate(
+            candidate
+          )
+        );
+
+    } catch (error) {
+
+      console.error(error);
+    }
+  }
+}
+
+
+/* =========================================================
+   CALL SIGNALER
+========================================================= */
+
+async function handleCallSignal(
+  signal
+) {
+
+  if (
+    !signal ||
+    !currentUser ||
+    signal.recipient_id !==
+      currentUser.id
+  ) {
+    return;
+  }
+
+
+  switch (
+    signal.signal_type
+  ) {
+
+    case "offer":
+
+      await handleIncomingOffer(
+        signal
+      );
+
+      break;
+
+
+    case "answer":
+
+      await handleAnswer(
+        signal
+      );
+
+      break;
+
+
+    case "ice-candidate":
+
+      await handleIceCandidate(
+        signal
+      );
+
+      break;
+
+
+    case "decline":
+
+      callStatus.textContent =
+        "Opkaldet blev afvist";
+
+      setTimeout(
+        closeCallLocally,
+        900
+      );
+
+      break;
+
+
+    case "busy":
+
+      callStatus.textContent =
+        "Optaget";
+
+      setTimeout(
+        closeCallLocally,
+        900
+      );
+
+      break;
+
+
+    case "hangup":
+
+      callStatus.textContent =
+        "Opkald afsluttet";
+
+      setTimeout(
+        closeCallLocally,
+        500
+      );
+
+      break;
+  }
+}
+
+
+/* =========================================================
+   REALTIME OPKALD
+========================================================= */
+
+function startCallRealtime() {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  if (callChannel) {
+
+    supabaseClient.removeChannel(
+      callChannel
+    );
+  }
+
+
+  callChannel =
+    supabaseClient
+      .channel(
+        "call-signals-" +
+        currentUser.id
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "call_signals",
+
+          filter:
+            `recipient_id=eq.${currentUser.id}`
+        },
+
+        payload => {
+
+          handleCallSignal(
+            payload.new
+          );
+        }
+      )
+      .subscribe();
+}
+
+
+/* =========================================================
+   CALL CONTROLS
+========================================================= */
+
+async function hangUp() {
+
+  await sendCallSignal(
+    "hangup"
+  );
+
+  closeCallLocally();
+}
+
+
+function closeCallLocally() {
+
+  if (peerConnection) {
+
+    peerConnection.close();
+
+    peerConnection =
+      null;
+  }
+
+
+  if (localStream) {
+
+    localStream
+      .getTracks()
+      .forEach(track => {
+
+        track.stop();
+      });
+
+    localStream =
+      null;
+  }
+
+
+  remoteVideo.srcObject =
+    null;
+
+  localVideo.srcObject =
+    null;
+
+
+  remoteVideo.classList.add(
+    "hidden"
+  );
+
+  localVideo.classList.add(
+    "hidden"
+  );
+
+
+  callOverlay.classList.add(
+    "hidden"
+  );
+
+  incomingActions.classList.add(
+    "hidden"
+  );
+
+  activeCallActions.classList.add(
+    "hidden"
+  );
+
+
+  pendingIncomingCall =
+    null;
+
+  currentCallType =
+    null;
+
+  queuedIceCandidates =
+    [];
+
+
+  muteButton.textContent =
+    "🎤 Mute";
+
+  cameraButton.textContent =
+    "📷 Kamera";
+}
+
+
+function toggleMute() {
+
+  if (!localStream) {
+    return;
+  }
+
+
+  const track =
+    localStream
+      .getAudioTracks()[0];
+
+
+  if (!track) {
+    return;
+  }
+
+
+  track.enabled =
+    !track.enabled;
+
+
+  muteButton.textContent =
+    track.enabled
+    ? "🎤 Mute"
+    : "🔇 Unmute";
+}
+
+
+function toggleCamera() {
+
+  if (!localStream) {
+    return;
+  }
+
+
+  const track =
+    localStream
+      .getVideoTracks()[0];
+
+
+  if (!track) {
+    return;
+  }
+
+
+  track.enabled =
+    !track.enabled;
+
+
+  cameraButton.textContent =
+    track.enabled
+    ? "📷 Kamera"
+    : "🚫 Kamera";
+}
+
+
+audioCallButton.addEventListener(
+  "click",
+  () => startCall("audio")
+);
+
+
+videoCallButton.addEventListener(
+  "click",
+  () => startCall("video")
+);
+
+
+acceptCallButton.addEventListener(
+  "click",
+  acceptIncomingCall
+);
+
+
+declineCallButton.addEventListener(
+  "click",
+  declineIncomingCall
+);
+
+
+hangupButton.addEventListener(
+  "click",
+  hangUp
+);
+
+
+muteButton.addEventListener(
+  "click",
+  toggleMute
+);
+
+
+cameraButton.addEventListener(
+  "click",
+  toggleCamera
+);
+
+
+/* =========================================================
+   GAMLE CALL SIGNALER
+========================================================= */
+
+async function deleteOldCallSignals() {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  const oneHourAgo =
+    new Date(
+      Date.now() -
+      60 * 60 * 1000
+    ).toISOString();
+
+
+  await supabaseClient
+    .from("call_signals")
+    .delete()
+    .lt(
+      "created_at",
+      oneHourAgo
+    );
+}
+
+
+/* =========================================================
    SETTINGS
 ========================================================= */
 
-function openSettings() {
-  settingsOverlay.classList.remove("hidden");
-}
+settingsButton.addEventListener(
+  "click",
+  () => {
 
-settingsButton.addEventListener("click", openSettings);
-settingsButton.addEventListener("touchend", openSettings);
+    settingsOverlay.classList.remove(
+      "hidden"
+    );
+  }
+);
 
 
 closeSettingsButton.addEventListener(
   "click",
   () => {
 
-    settingsOverlay
-      .classList
-      .add("hidden");
+    settingsOverlay.classList.add(
+      "hidden"
+    );
   }
 );
 
@@ -2740,51 +2956,49 @@ settingsOverlay.addEventListener(
       settingsOverlay
     ) {
 
-      settingsOverlay
-        .classList
-        .add("hidden");
+      settingsOverlay.classList.add(
+        "hidden"
+      );
     }
   }
 );
 
 
-/* =========================================================
-   LÅS
-========================================================= */
-
 lockButton.addEventListener(
   "click",
   () => {
 
-    settingsOverlay
-      .classList
-      .add("hidden");
-
-    pinUnlocked = false;
+    settingsOverlay.classList.add(
+      "hidden"
+    );
 
     setupPinScreen();
   }
 );
 
 
-/* =========================================================
-   SKIFT PIN
-========================================================= */
-
 changePinButton.addEventListener(
   "click",
-  () => {
+  async () => {
 
-    const currentPin =
+    const oldPin =
       prompt(
         "Indtast nuværende PIN:"
       );
 
 
-    if (
-      currentPin !==
-      getSavedPin()
-    ) {
+    if (!oldPin) {
+      return;
+    }
+
+
+    const correct =
+      await verifyPin(
+        oldPin
+      );
+
+
+    if (!correct) {
 
       alert(
         "Forkert PIN."
@@ -2814,61 +3028,73 @@ changePinButton.addEventListener(
     }
 
 
-    localStorage.setItem(
-      "elektriker_handbog_pin",
+    await savePinSecurely(
       newPin
+    );
+
+
+    settingsOverlay.classList.add(
+      "hidden"
     );
 
 
     alert(
       "PIN-koden er ændret."
     );
-
-
-    settingsOverlay
-      .classList
-      .add("hidden");
   }
 );
 
 
-/* =========================================================
-   LOG UD
-========================================================= */
-
 logoutButton.addEventListener(
   "click",
   async () => {
+
+    closeCallLocally();
+
+
+    if (realtimeChannel) {
+
+      supabaseClient.removeChannel(
+        realtimeChannel
+      );
+
+      realtimeChannel =
+        null;
+    }
+
+
+    if (callChannel) {
+
+      supabaseClient.removeChannel(
+        callChannel
+      );
+
+      callChannel =
+        null;
+    }
+
 
     await supabaseClient
       .auth
       .signOut();
 
 
-    currentUser = null;
+    currentUser =
+      null;
 
-    recipientId = null;
-
-
-    if (realtimeChannel) {
-
-      supabaseClient
-        .removeChannel(
-          realtimeChannel
-        );
-
-      realtimeChannel = null;
-    }
+    recipientId =
+      null;
 
 
-    settingsOverlay
-      .classList
-      .add("hidden");
+    settingsOverlay.classList.add(
+      "hidden"
+    );
 
 
     emailInput.value = "";
 
     passwordInput.value = "";
+
 
     showOnly(
       loginScreen
@@ -2878,7 +3104,7 @@ logoutButton.addEventListener(
 
 
 /* =========================================================
-   AUTO-LÅS NÅR APPEN FORLADES
+   AUTO-LÅS
 ========================================================= */
 
 document.addEventListener(
@@ -2886,17 +3112,21 @@ document.addEventListener(
   () => {
 
     if (
-      document.hidden &&
-      pinUnlocked
+      document.hidden
     ) {
 
-      pinUnlocked = false;
+      pinUnlocked =
+        false;
+
+      return;
     }
 
 
     if (
-      !document.hidden &&
-      !pinUnlocked
+      !pinUnlocked &&
+      !chatScreen.classList.contains(
+        "hidden"
+      )
     ) {
 
       setupPinScreen();
@@ -2906,25 +3136,62 @@ document.addEventListener(
 
 
 /* =========================================================
-   START APP
+   SERVICE WORKER / CACHE
+   MIDlERTIDIGT FRAKOBLET UNDER TEST
 ========================================================= */
+
+async function removeOldServiceWorker() {
+
+  if (
+    "serviceWorker"
+    in navigator
+  ) {
+
+    const registrations =
+      await navigator
+        .serviceWorker
+        .getRegistrations();
+
+
+    registrations.forEach(
+      registration => {
+
+        registration.unregister();
+      }
+    );
+  }
+
+
+  if (
+    "caches"
+    in window
+  ) {
+
+    const names =
+      await caches.keys();
+
+
+    names.forEach(
+      name => {
+
+        caches.delete(
+          name
+        );
+      }
+    );
+  }
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+removeOldServiceWorker();
 
 setupPinScreen();
 
 </script>
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    registrations.forEach(registration => registration.unregister());
-  });
-}
 
-if ("caches" in window) {
-  caches.keys().then(names => {
-    names.forEach(name => caches.delete(name));
-  });
-}
-</script>
-  
 </body>
 </html>
