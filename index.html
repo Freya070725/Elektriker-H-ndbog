@@ -2928,7 +2928,8 @@ async function pollCallSignals() {
           Number(a.id) -
           Number(b.id)
       );
-
+statusText.textContent =
+  `CALL TEST: ${data?.length || 0} total / ${newSignals.length} nye`;
 
   for (
     const signal
