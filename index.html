@@ -541,13 +541,31 @@
         <span id="statusText">Synkroniseret</span>
       </div>
 
-      <button
-        id="settingsButton"
-        class="top-button"
-        aria-label="Indstillinger"
-      >
-        ⋮
-      </button>
+     <button
+  id="audioCallButton"
+  class="top-button"
+  aria-label="Lydopkald"
+  title="Lydopkald"
+>
+  📞
+</button>
+
+<button
+  id="videoCallButton"
+  class="top-button"
+  aria-label="Videoopkald"
+  title="Videoopkald"
+>
+  📹
+</button>
+
+<button
+  id="settingsButton"
+  class="top-button"
+  aria-label="Indstillinger"
+>
+  ⋮
+</button>
 
     </header>
 
@@ -599,7 +617,89 @@
     </footer>
 
   </section>
+<!-- =============================================
+     OPKALD
+============================================== -->
 
+<div id="callOverlay" class="overlay hidden">
+
+  <div class="settings-panel" style="text-align:center;">
+
+    <h3 id="callTitle">Opkald</h3>
+
+    <div id="callStatus" style="
+      margin: 12px 0 18px;
+      color:#68737d;
+    ">
+      Forbinder...
+    </div>
+
+    <video
+      id="remoteVideo"
+      autoplay
+      playsinline
+      style="
+        width:100%;
+        max-height:320px;
+        border-radius:16px;
+        background:#111;
+        display:none;
+        margin-bottom:12px;
+      "
+    ></video>
+
+    <video
+      id="localVideo"
+      autoplay
+      muted
+      playsinline
+      style="
+        width:120px;
+        height:160px;
+        object-fit:cover;
+        border-radius:14px;
+        background:#111;
+        display:none;
+        margin:0 auto 16px;
+      "
+    ></video>
+
+    <div style="
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+    ">
+
+      <button
+        id="muteButton"
+        class="settings-button"
+        style="width:auto;"
+      >
+        🎤 Mute
+      </button>
+
+      <button
+        id="cameraButton"
+        class="settings-button"
+        style="width:auto;"
+      >
+        📷 Kamera
+      </button>
+
+      <button
+        id="hangupButton"
+        class="settings-button danger"
+        style="width:auto;"
+      >
+        📵 Læg på
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
   <!-- =============================================
        SETTINGS MENU
@@ -712,7 +812,36 @@ const sendButton =
 
 const deleteAfterSelect =
   document.getElementById("deleteAfterSelect");
+const audioCallButton =
+  document.getElementById("audioCallButton");
 
+const videoCallButton =
+  document.getElementById("videoCallButton");
+
+const callOverlay =
+  document.getElementById("callOverlay");
+
+const callTitle =
+  document.getElementById("callTitle");
+
+const callStatus =
+  document.getElementById("callStatus");
+
+const remoteVideo =
+  document.getElementById("remoteVideo");
+
+const localVideo =
+  document.getElementById("localVideo");
+
+const muteButton =
+  document.getElementById("muteButton");
+
+const cameraButton =
+  document.getElementById("cameraButton");
+
+const hangupButton =
+  document.getElementById("hangupButton");
+  
 const settingsButton =
   document.getElementById("settingsButton");
 
@@ -747,7 +876,12 @@ let realtimeChannel = null;
 
 let pinUnlocked = false;
 
-
+let peerConnection = null;
+let localStream = null;
+let currentCallType = null;
+let callChannel = null;
+let pendingOffer = null;
+  
 /* =========================================================
    HJÆLPEFUNKTIONER
 ========================================================= */
