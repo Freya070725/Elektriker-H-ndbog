@@ -955,6 +955,9 @@ let currentCallType = null;
 let pendingIncomingCall = null;
 
 let queuedIceCandidates = [];
+  let callPollingTimer = null;
+let lastCallSignalId = 0;
+const processedCallSignalIds = new Set();
 
 
 /* =========================================================
@@ -1489,9 +1492,11 @@ async function openChat() {
 
     startMessageRealtime();
 
-    startCallRealtime();
+startCallRealtime();
 
-    deleteOldCallSignals();
+await initializeCallPolling();
+
+deleteOldCallSignals();
 
     statusText.textContent =
       "Synkroniseret";
@@ -2610,6 +2615,20 @@ async function flushQueuedIceCandidates() {
 async function handleCallSignal(
   signal
 ) {
+    if (signal?.id) {
+
+    if (
+      processedCallSignalIds.has(
+        signal.id
+      )
+    ) {
+      return;
+    }
+
+    processedCallSignalIds.add(
+      signal.id
+    );
+  }
 
   if (
     !signal ||
@@ -2738,7 +2757,109 @@ function startCallRealtime() {
       )
       .subscribe();
 }
+async function initializeCallPolling() {
 
+  if (!currentUser) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("call_signals")
+      .select("id")
+      .eq(
+        "recipient_id",
+        currentUser.id
+      )
+      .order(
+        "id",
+        {
+          ascending: false
+        }
+      )
+      .limit(1);
+
+  if (!error && data?.length) {
+
+    lastCallSignalId =
+      data[0].id;
+  }
+
+  if (callPollingTimer) {
+
+    clearInterval(
+      callPollingTimer
+    );
+  }
+
+  callPollingTimer =
+    setInterval(
+      pollCallSignals,
+      1000
+    );
+}
+
+
+async function pollCallSignals() {
+
+  if (
+    !currentUser ||
+    document.hidden
+  ) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("call_signals")
+      .select("*")
+      .eq(
+        "recipient_id",
+        currentUser.id
+      )
+      .gt(
+        "id",
+        lastCallSignalId
+      )
+      .order(
+        "id",
+        {
+          ascending: true
+        }
+      );
+
+  if (error) {
+
+    console.error(
+      "Call polling error:",
+      error
+    );
+
+    return;
+  }
+
+  for (
+    const signal
+    of data || []
+  ) {
+
+    lastCallSignalId =
+      Math.max(
+        lastCallSignalId,
+        signal.id
+      );
+
+    await handleCallSignal(
+      signal
+    );
+  }
+}
 
 /* =========================================================
    CALL CONTROLS
@@ -3104,7 +3225,14 @@ logoutButton.addEventListener(
         null;
     }
 
+if (callPollingTimer) {
 
+  clearInterval(
+    callPollingTimer
+  );
+
+  callPollingTimer = null;
+}
     await supabaseClient
       .auth
       .signOut();
