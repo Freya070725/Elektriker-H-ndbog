@@ -956,7 +956,6 @@ let pendingIncomingCall = null;
 
 let queuedIceCandidates = [];
   let callPollingTimer = null;
-let lastCallSignalId = 0;
 const processedCallSignalIds = new Set();
 
 
@@ -2802,15 +2801,84 @@ async function initializeCallPolling() {
     );
 }
 
+async function initializeCallPolling() {
+
+  if (!currentUser) {
+    return;
+  }
+
+  processedCallSignalIds.clear();
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("call_signals")
+      .select("id")
+      .eq(
+        "recipient_id",
+        currentUser.id
+      )
+      .order(
+        "id",
+        {
+          ascending: false
+        }
+      )
+      .limit(20);
+
+
+  if (error) {
+
+    console.error(
+      "Kunne ikke starte call polling:",
+      error
+    );
+
+  } else {
+
+    for (
+      const signal
+      of data || []
+    ) {
+
+      processedCallSignalIds.add(
+        signal.id
+      );
+    }
+  }
+
+
+  if (callPollingTimer) {
+
+    clearInterval(
+      callPollingTimer
+    );
+  }
+
+
+  callPollingTimer =
+    setInterval(
+      pollCallSignals,
+      1000
+    );
+
+
+  // Kør også med det samme
+  setTimeout(
+    pollCallSignals,
+    250
+  );
+}
+
 
 async function pollCallSignals() {
 
-  if (
-    !currentUser ||
-    document.hidden
-  ) {
+  if (!currentUser) {
     return;
   }
+
 
   const {
     data,
@@ -2823,16 +2891,14 @@ async function pollCallSignals() {
         "recipient_id",
         currentUser.id
       )
-      .gt(
-        "id",
-        lastCallSignalId
-      )
       .order(
         "id",
         {
-          ascending: true
+          ascending: false
         }
-      );
+      )
+      .limit(30);
+
 
   if (error) {
 
@@ -2844,16 +2910,26 @@ async function pollCallSignals() {
     return;
   }
 
+
+  const newSignals =
+    (data || [])
+      .filter(
+        signal =>
+          !processedCallSignalIds.has(
+            signal.id
+          )
+      )
+      .sort(
+        (a, b) =>
+          Number(a.id) -
+          Number(b.id)
+      );
+
+
   for (
     const signal
-    of data || []
+    of newSignals
   ) {
-
-    lastCallSignalId =
-      Math.max(
-        lastCallSignalId,
-        signal.id
-      );
 
     await handleCallSignal(
       signal
