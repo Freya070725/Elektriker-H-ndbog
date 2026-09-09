@@ -1905,16 +1905,29 @@ function startMessageRealtime() {
 const RTC_CONFIG = {
 
   iceServers: [
-
-    {
-      urls:
-        "stun:stun.l.google.com:19302"
-    },
-
-    {
-      urls:
-        "stun:stun1.l.google.com:19302"
-    }
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "596a14e794f8e4b6e64ec969",
+        credential: "RMmlPAAcyTUy2jqK",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "596a14e794f8e4b6e64ec969",
+        credential: "RMmlPAAcyTUy2jqK",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "596a14e794f8e4b6e64ec969",
+        credential: "RMmlPAAcyTUy2jqK",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "596a14e794f8e4b6e64ec969",
+        credential: "RMmlPAAcyTUy2jqK",
+      },
   ]
 };
 
